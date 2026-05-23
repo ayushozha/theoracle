@@ -1,2 +1,5 @@
 config.local.js
 .DS_Store
+functions/.env
+functions/.env.local
+functions/node_modules/

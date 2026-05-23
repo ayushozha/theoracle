@@ -1,0 +1,15 @@
+.git
+.gitignore
+.gcloudignore
+node_modules
+archive/
+seed_embedded.json
+firebase.json
+.firebaserc
+firebase-debug.log
+functions/
+config.local.js
+config.example.js
+README.md
+*.md
+.DS_Store

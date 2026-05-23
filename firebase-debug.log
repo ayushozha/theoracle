@@ -1,0 +1,50 @@
+[debug] [2026-05-23T22:22:15.939Z] ----------------------------------------------------------------------
+[debug] [2026-05-23T22:22:15.940Z] Command:       /opt/homebrew/Cellar/node/25.9.0_2/bin/node /Users/work/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase projects:create the-oracle-io --display-name The Oracle
+[debug] [2026-05-23T22:22:15.940Z] CLI Version:   15.18.0
+[debug] [2026-05-23T22:22:15.940Z] Platform:      darwin
+[debug] [2026-05-23T22:22:15.940Z] Node Version:  v25.9.0
+[debug] [2026-05-23T22:22:15.940Z] Time:          Sat May 23 2026 15:22:15 GMT-0700 (Pacific Daylight Time)
+[debug] [2026-05-23T22:22:15.940Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-23T22:22:15.996Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-23T22:22:15.997Z] > authorizing via signed-in user (devstar7612@gcplab.me)
+[debug] [2026-05-23T22:22:15.998Z] Checked if tokens are valid: true, expires at: 1779578484876
+[debug] [2026-05-23T22:22:15.998Z] Checked if tokens are valid: true, expires at: 1779578484876
+[debug] [2026-05-23T22:22:15.998Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2026-05-23T22:22:15.998Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"the-oracle-io","name":"The Oracle"}
+[debug] [2026-05-23T22:22:16.531Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 200
+[debug] [2026-05-23T22:22:16.531Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"name":"operations/create_project.global.6879744653522558004"}
+[debug] [2026-05-23T22:22:16.532Z] Checked if tokens are valid: true, expires at: 1779578484876
+[debug] [2026-05-23T22:22:16.532Z] Checked if tokens are valid: true, expires at: 1779578484876
+[debug] [2026-05-23T22:22:16.532Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.6879744653522558004 [none]
+[debug] [2026-05-23T22:22:16.881Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.6879744653522558004 200
+[debug] [2026-05-23T22:22:16.881Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.6879744653522558004 {"name":"operations/create_project.global.6879744653522558004","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","ready":true},"done":true,"error":{"code":7,"message":"No permission to create project in organization"}}
+[debug] [2026-05-23T22:22:17.070Z] FirebaseError: No permission to create project in organization
+    at OperationPoller.poll (/Users/work/.npm/_npx/7750544ccf494d8b/node_modules/firebase-tools/lib/operation-poller.js:25:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async createCloudProject (/Users/work/.npm/_npx/7750544ccf494d8b/node_modules/firebase-tools/lib/management/projects.js:237:29)
+    at async createFirebaseProjectAndLog (/Users/work/.npm/_npx/7750544ccf494d8b/node_modules/firebase-tools/lib/management/projects.js:102:9)
+[error] 
+[error] Error: Failed to create project. See firebase-debug.log for more info.
+[debug] [2026-05-23T22:23:36.700Z] ----------------------------------------------------------------------
+[debug] [2026-05-23T22:23:36.701Z] Command:       /opt/homebrew/Cellar/node/25.9.0_2/bin/node /Users/work/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase projects:addfirebase io-hack26mtv-7612
+[debug] [2026-05-23T22:23:36.701Z] CLI Version:   15.18.0
+[debug] [2026-05-23T22:23:36.702Z] Platform:      darwin
+[debug] [2026-05-23T22:23:36.702Z] Node Version:  v25.9.0
+[debug] [2026-05-23T22:23:36.702Z] Time:          Sat May 23 2026 15:23:36 GMT-0700 (Pacific Daylight Time)
+[debug] [2026-05-23T22:23:36.702Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-23T22:23:36.760Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-23T22:23:36.760Z] > authorizing via signed-in user (devstar7612@gcplab.me)
+[debug] [2026-05-23T22:23:36.761Z] Checked if tokens are valid: true, expires at: 1779578484876
+[debug] [2026-05-23T22:23:36.761Z] Checked if tokens are valid: true, expires at: 1779578484876
+[debug] [2026-05-23T22:23:36.761Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/io-hack26mtv-7612:addFirebase [none]
+[debug] [2026-05-23T22:23:37.007Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/io-hack26mtv-7612:addFirebase 403
+[debug] [2026-05-23T22:23:37.007Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/io-hack26mtv-7612:addFirebase {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2026-05-23T22:23:37.008Z] Request to https://firebase.googleapis.com/v1beta1/projects/io-hack26mtv-7612:addFirebase had HTTP Error: 403, The caller does not have permission
+[debug] [2026-05-23T22:23:37.160Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/io-hack26mtv-7612:addFirebase had HTTP Error: 403, The caller does not have permission
+    at responseToError (/Users/work/.npm/_npx/7750544ccf494d8b/node_modules/firebase-tools/lib/responseToError.js:53:12)
+    at RetryOperation._fn (/Users/work/.npm/_npx/7750544ccf494d8b/node_modules/firebase-tools/lib/apiv2.js:333:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[error] 
+[error] Error: Failed to add Firebase to Google Cloud Platform project. See firebase-debug.log for more info.

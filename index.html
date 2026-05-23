@@ -210,13 +210,20 @@
 
 <script src="config.local.js"></script>
 <script>
+// When deployed, hit the Firebase Function proxy (/gemini/...) which injects the API key server-side.
+// In local dev (localhost), call Gemini directly with the key from config.local.js.
+const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 const GEMINI_KEY = (typeof window !== 'undefined' && window.__ORACLE_KEY) || '';
-if (!GEMINI_KEY) {
-  alert("No API key found. Copy config.example.js to config.local.js and paste your Gemini key.");
+if (IS_LOCAL && !GEMINI_KEY) {
+  alert("Local dev: copy config.example.js to config.local.js and paste your Gemini key.");
 }
 const MODEL = "gemini-3.5-flash";
-const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
-const STREAM_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+const GEMINI_BASE = IS_LOCAL
+  ? `https://generativelanguage.googleapis.com/v1beta`
+  : `/gemini/v1beta`;
+const KEY_SUFFIX = IS_LOCAL ? `&key=${GEMINI_KEY}` : '';
+const MODEL_URL = `${GEMINI_BASE}/models/${MODEL}:generateContent?${IS_LOCAL ? `key=${GEMINI_KEY}` : ''}`;
+const STREAM_URL = `${GEMINI_BASE}/models/${MODEL}:streamGenerateContent?alt=sse${KEY_SUFFIX}`;
 
 const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
