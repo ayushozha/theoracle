@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oracle</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #fafafa;
+    --bg-mute: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #18181b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #18181b;
+    --link: #2563eb;
+    --strong: #15803d;
+    --moderate: #a16207;
+    --stretch: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "SF Pro Text", ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  body { padding: 32px 40px 80px; max-width: 1240px; margin: 0 auto; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .topbar { display: flex; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .topbar h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .topbar .crumb { color: var(--text-3); font-size: 13px; }
+  .topbar .spacer { flex: 1; }
+  .topbar .meta { color: var(--text-3); font-size: 12.5px; }
+
+  /* Section */
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .section-head h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.005em; }
+  .section-head .desc { color: var(--text-3); font-size: 12.5px; }
+  .section-head .spacer { flex: 1; }
+
+  /* Action bar */
+  .actionbar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-subtle); margin-bottom: 20px; flex-wrap: wrap; }
+  .actionbar label { color: var(--text-2); font-size: 12.5px; }
+  .actionbar select { background: white; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font: inherit; font-size: 12.5px; outline: none; }
+  .actionbar select:focus { border-color: var(--text); }
+  .actionbar input[type="checkbox"] { vertical-align: -2px; margin-right: 4px; accent-color: var(--accent); }
+  .actionbar .spacer { flex: 1; }
+  .actionbar .meta { color: var(--text-3); font-size: 12.5px; }
+  .actionbar .meta b { color: var(--text); font-weight: 600; }
+
+  .btn {
+    background: var(--accent); color: white; border: 1px solid var(--accent); border-radius: 6px;
+    padding: 7px 14px; font: inherit; font-weight: 500; font-size: 13px; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.secondary { background: white; color: var(--text); border-color: var(--border-strong); }
+  .btn.secondary:hover { background: var(--bg-mute); }
+
+  /* Stats row */
+  .stats { display: flex; gap: 24px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-subtle); margin-bottom: 20px; font-size: 12.5px; color: var(--text-2); flex-wrap: wrap; }
+  .stats b { color: var(--text); font-weight: 600; }
+
+  /* Filters */
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filters input {
+    flex: 1; min-width: 280px; background: white; color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 7px 11px; font: inherit; font-size: 13px; outline: none;
+  }
+  .filters input:focus { border-color: var(--text); }
+  .filters .chip {
+    font-size: 12px; padding: 4px 10px; border-radius: 6px;
+    background: white; border: 1px solid var(--border); color: var(--text-2); cursor: pointer;
+  }
+  .filters .chip:hover { background: var(--bg-mute); color: var(--text); }
+  .filters .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* Listings grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+  .card {
+    border: 1px solid var(--border); border-radius: 8px; background: white;
+    transition: border-color 0.15s, background 0.15s; overflow: hidden;
+  }
+  .card:hover { border-color: var(--border-strong); }
+  .card-img-wrap {
+    width: 100%; aspect-ratio: 4/3; background: var(--bg-mute);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-img-wrap .img-count {
+    position: absolute; bottom: 6px; right: 6px;
+    background: rgba(0,0,0,0.65); color: white; font-size: 10.5px;
+    padding: 1px 6px; border-radius: 3px; font-family: ui-monospace, monospace;
+  }
+  .card-img-wrap .no-img { color: var(--text-3); font-size: 11px; }
+  .card-body { padding: 12px 14px; }
+  .card-top { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+  .card-user { font-weight: 600; font-size: 13px; color: var(--text); }
+  .card-loc { color: var(--text-3); font-size: 12px; }
+  .card-spacer { flex: 1; }
+  .card-posted { font-size: 11px; color: var(--text-3); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .card-title { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; line-height: 1.4; }
+  .card-meta { font-size: 11.5px; color: var(--text-3); margin-bottom: 6px; text-transform: lowercase; }
+  .card-story { font-size: 12.5px; color: var(--text-2); line-height: 1.5; margin-bottom: 10px; }
+  .card-wants { padding-top: 10px; border-top: 1px solid var(--border); font-size: 12.5px; }
+  .card-wants-label { color: var(--text-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; font-weight: 600; }
+  .card-want { color: var(--text-2); margin-bottom: 3px; }
+  .card-want .thing { color: var(--text); font-weight: 500; }
+  .card-want .why { color: var(--text-3); }
+  .card-want .catch { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: var(--bg-mute); color: var(--text-3); margin-left: 4px; }
+
+  /* Ring */
+  .ring {
+    border: 1px solid var(--border); border-radius: 8px; background: white; margin-bottom: 16px; overflow: hidden;
+    animation: ringIn 0.35s ease-out;
+  }
+  @keyframes ringIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .ring-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 12px;
+  }
+  .ring-title { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.005em; }
+  .ring-meta { color: var(--text-3); font-size: 12px; }
+  .ring-spacer { flex: 1; }
+  .quality-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500;
+    background: var(--bg-mute); color: var(--text-2); border: 1px solid var(--border);
+  }
+  .quality-badge.strong { background: #f0fdf4; color: var(--strong); border-color: #bbf7d0; }
+  .quality-badge.moderate { background: #fffbeb; color: var(--moderate); border-color: #fde68a; }
+  .quality-badge.stretch { background: #fef2f2; color: var(--stretch); border-color: #fecaca; }
+
+  .ring-summary { padding: 12px 18px; background: var(--bg-subtle); border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-2); line-height: 1.55; }
+
+  .ring-table { display: grid; }
+  .ring-step {
+    display: grid; grid-template-columns: 200px 1fr; gap: 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .ring-step:last-child { border-bottom: none; }
+  .ring-step.expanded { background: var(--bg-subtle); }
+  .ring-step.is-you .step-side { background: #fefce8; border-right-color: #fde68a; }
+  .ring-step.is-you.expanded .step-side { background: #fdf6c2; }
+  .ring-step.is-you .step-user::after {
+    content: 'you'; display: inline-block; margin-left: 6px; font-size: 10px;
+    background: var(--accent); color: white; padding: 1px 6px; border-radius: 3px; vertical-align: 2px; font-weight: 500;
+  }
+
+  .step-side {
+    padding: 16px 18px; border-right: 1px solid var(--border); background: white;
+  }
+  .ring-step.expanded .step-side { background: var(--bg-subtle); }
+  .step-num { font-size: 10.5px; color: var(--text-3); font-family: ui-monospace, "SF Mono", Menlo, monospace; margin-bottom: 4px; }
+  .step-user { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .step-loc { color: var(--text-3); font-size: 12px; margin-bottom: 8px; }
+  .step-thumb {
+    width: 100%; aspect-ratio: 4/3; background: var(--bg-mute);
+    border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .step-thumb .no-img { color: var(--text-3); font-size: 10.5px; }
+  .step-link { font-size: 11.5px; }
+
+  .details-section .imgs {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px; margin-bottom: 12px;
+  }
+  .details-section .imgs img {
+    width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--bg-mute);
+  }
+  .details-section .no-imgs {
+    color: var(--text-3); font-size: 11.5px; padding: 8px 10px;
+    background: var(--bg-mute); border-radius: 4px; margin-bottom: 12px;
+  }
+
+  .step-main { padding: 16px 18px; }
+  .step-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+  .step-row:last-child { margin-bottom: 0; }
+  .step-row-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+    color: var(--text-3); min-width: 96px; padding-top: 1px; flex-shrink: 0;
+  }
+  .step-row-body { flex: 1; font-size: 13px; line-height: 1.55; color: var(--text); }
+  .step-row-body .item { font-weight: 600; color: var(--text); }
+  .step-row-body .meta { color: var(--text-3); font-size: 11.5px; }
+  .step-row-body .reasoning { color: var(--text-2); font-size: 12.5px; line-height: 1.6; }
+  .step-row-body .reasoning .ref { color: var(--text); font-weight: 500; }
+
+  .step-expand {
+    padding: 8px 18px; border-top: 1px dashed var(--border);
+    background: var(--bg-subtle); font-size: 12px; color: var(--text-3); cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    grid-column: 1 / -1;
+  }
+  .step-expand:hover { color: var(--text); }
+  .step-expand .chev { transition: transform 0.15s; }
+  .ring-step.expanded .step-expand .chev { transform: rotate(90deg); }
+
+  .step-details {
+    display: none; padding: 16px 18px; grid-column: 1 / -1; background: var(--bg-subtle); border-top: 1px solid var(--border);
+  }
+  .ring-step.expanded .step-details { display: block; }
+  .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 800px) { .details-grid { grid-template-columns: 1fr; } }
+  .details-section h4 {
+    margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-3); font-weight: 600;
+  }
+  .details-section .full-title { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .details-section .full-meta { font-size: 11.5px; color: var(--text-3); margin-bottom: 8px; }
+  .details-section .full-story { font-size: 12.5px; color: var(--text-2); line-height: 1.6; margin-bottom: 10px; }
+  .details-section .want-item { font-size: 12.5px; line-height: 1.5; padding: 4px 0; border-top: 1px solid var(--border); }
+  .details-section .want-item:first-of-type { border-top: none; }
+  .details-section .want-item .thing { font-weight: 500; }
+  .details-section .want-item .why { color: var(--text-2); }
+  .details-section .want-item .catch-tag { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: var(--bg-mute); color: var(--text-3); margin-left: 4px; vertical-align: 1px; }
+  .details-section .want-item.matched {
+    background: #fefce8; border-left: 2px solid var(--moderate); padding-left: 8px; margin-left: -10px;
+  }
+
+  /* Empty / loading */
+  .empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-size: 13px; border: 1px dashed var(--border); border-radius: 8px; }
+  .spinner { width: 11px; height: 11px; border: 1.5px solid var(--border-strong); border-top-color: var(--text); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; vertical-align: -1px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 12px; }
+
+  .err { padding: 12px 14px; border: 1px solid #fecaca; background: #fef2f2; color: var(--stretch); border-radius: 6px; font-size: 12.5px; font-family: ui-monospace, monospace; }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* New: trade flow */
+  .trade-flow { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; margin-bottom: 24px; }
+  @media (max-width: 800px) { .trade-flow { grid-template-columns: 1fr; } }
+  .upload-zone {
+    border: 1.5px dashed var(--border-strong); border-radius: 8px; padding: 24px;
+    background: var(--bg-subtle); cursor: pointer; text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+    aspect-ratio: 4/3; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .upload-zone:hover { border-color: var(--accent); background: white; }
+  .upload-zone.has-image { padding: 0; border-style: solid; }
+  .upload-zone img { width: 100%; height: 100%; object-fit: cover; }
+  .upload-zone .close-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); color: white; border: none;
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    font-size: 16px; line-height: 1; padding: 0; display: none;
+    align-items: center; justify-content: center; z-index: 2;
+  }
+  .upload-zone .close-btn:hover { background: rgba(0,0,0,0.9); }
+  .upload-zone.has-image .close-btn { display: flex; }
+  .upload-zone .placeholder-icon { font-size: 28px; color: var(--text-3); margin-bottom: 8px; }
+  .upload-zone .placeholder-text { color: var(--text-2); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+  .upload-zone .upload-actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; width: 100%; max-width: 220px; }
+  .upload-zone .upload-btn {
+    border: 1px solid var(--border-strong); background: white; color: var(--text);
+    border-radius: 6px; padding: 9px 14px; font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  }
+  .upload-zone .upload-btn:hover { background: var(--bg-mute); }
+  .upload-zone .upload-btn.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  .upload-zone .upload-btn.primary:hover { opacity: 0.9; background: var(--accent); }
+
+  .trade-info { display: flex; flex-direction: column; gap: 12px; }
+  .trade-info .extracted-card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: white;
+  }
+  .trade-info .extracted-card.empty {
+    background: var(--bg-subtle); color: var(--text-3); font-size: 13px;
+    display: flex; align-items: center; justify-content: center; min-height: 120px;
+  }
+  .trade-info .extracted-card label {
+    display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-3); font-weight: 600; margin-bottom: 3px; margin-top: 8px;
+  }
+  .trade-info .extracted-card label:first-of-type { margin-top: 0; }
+  .trade-info .extracted-card input,
+  .trade-info .extracted-card textarea {
+    width: 100%; background: var(--bg-subtle); color: var(--text);
+    border: 1px solid transparent; border-radius: 5px; padding: 6px 9px;
+    font: inherit; font-size: 13px; outline: none; resize: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .trade-info .extracted-card input:hover,
+  .trade-info .extracted-card textarea:hover { background: var(--bg-mute); }
+  .trade-info .extracted-card input:focus,
+  .trade-info .extracted-card textarea:focus { background: white; border-color: var(--text); }
+  .trade-info .extracted-card .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .trade-info .extracted-card .title-input { font-size: 15px; font-weight: 600; letter-spacing: -0.005em; }
+  .trade-info .extracted-card .story-input { font-size: 13px; line-height: 1.55; min-height: 56px; }
+
+  .wants-editor { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: white; }
+  .wants-editor h4 {
+    margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-3); font-weight: 600;
+  }
+  .wants-editor .want-input {
+    display: flex; gap: 6px; align-items: center; margin-bottom: 6px;
+  }
+  .wants-editor .want-input input {
+    flex: 1; border: 1px solid var(--border); border-radius: 5px; padding: 6px 9px;
+    font: inherit; font-size: 13px; outline: none; background: var(--bg-subtle);
+  }
+  .wants-editor .want-input input:focus { border-color: var(--text); background: white; }
+  .wants-editor .want-input .remove {
+    color: var(--text-3); cursor: pointer; padding: 2px 6px; font-size: 14px; line-height: 1;
+  }
+  .wants-editor .want-input .remove:hover { color: var(--stretch); }
+  .wants-editor .add-want {
+    background: none; border: 1px dashed var(--border-strong); color: var(--text-2);
+    padding: 6px 12px; font: inherit; font-size: 12px; border-radius: 5px; cursor: pointer;
+    width: 100%; margin-top: 4px;
+  }
+  .wants-editor .add-want:hover { border-color: var(--text); color: var(--text); }
+
+  .trade-actions { display: flex; gap: 10px; align-items: center; }
+  .trade-actions .meta { color: var(--text-3); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Oracle</h1>
+  <span class="crumb">/ barter matchmaking</span>
+  <div class="spacer"></div>
+  <span class="meta" id="dataset-meta">loading…</span>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div class="section">
+  <div class="section-head">
+    <h2>Trade something</h2>
+    <span class="desc">Photograph what you'd part with. The Oracle reads the photo, places you in the pool, and finds the multi-hop ring that gets you what you want.</span>
+  </div>
+
+  <div class="trade-flow">
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="file-input" accept="image/*" style="display:none">
+      <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+      <button class="close-btn" id="close-btn" title="Remove and start over">×</button>
+      <div class="placeholder-icon">⬡</div>
+      <div class="placeholder-text">Photograph or upload what you'd trade away</div>
+      <div class="upload-actions">
+        <button class="upload-btn primary" id="camera-btn">📷 Take photo</button>
+        <button class="upload-btn" id="upload-btn">Upload from device</button>
+      </div>
+    </div>
+
+    <div class="trade-info">
+      <div class="extracted-card empty" id="extracted">
+        Upload a photo to begin.
+      </div>
+      <div class="wants-editor" id="wants-editor" style="display:none;">
+        <h4>What would you take in return?</h4>
+        <div id="wants-list"></div>
+        <button class="add-want" id="add-want-btn">+ add another</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="actionbar">
+    <button class="btn" id="find-btn" disabled>Find my trades</button>
+    <label>max ring length</label>
+    <select id="max-len">
+      <option>2</option>
+      <option selected>3</option>
+      <option>4</option>
+      <option>5</option>
+    </select>
+    <label>show</label>
+    <select id="n-rings">
+      <option>3</option>
+      <option selected>5</option>
+      <option>8</option>
+    </select>
+    <label>candidate rings</label>
+    <div class="spacer"></div>
+    <span class="meta" id="match-stats"></span>
+    <span class="status" id="matching-status"></span>
+  </div>
+  <div id="rings"></div>
+</div>
+
+<hr class="divider">
+
+<div class="section">
+  <div class="section-head">
+    <h2>All listings</h2>
+    <span class="desc" id="listings-count">…</span>
+  </div>
+  <div class="filters">
+    <input id="search" placeholder="search by item, story, location…">
+    <span class="chip active" data-cat="all">all</span>
+    <span class="chip" data-cat="vehicle">vehicles</span>
+    <span class="chip" data-cat="music">music</span>
+    <span class="chip" data-cat="services">services</span>
+    <span class="chip" data-cat="computing">computing</span>
+    <span class="chip" data-cat="collectibles">collectibles</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const GEMINI_KEY = "AIzaSyCGt3ZXPHBY73w3wjUz284Ai3h6uqwFXdw";
+const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_KEY}`;
+const STREAM_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+
+const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let LISTINGS = [];
+let LISTINGS_BY_ID = {};
+let filter = { q: '', cat: 'all' };
+
+(async () => {
+  LISTINGS = await (await fetch('seed.json')).json();
+  LISTINGS_BY_ID = Object.fromEntries(LISTINGS.map(l => [l.id, l]));
+  document.getElementById('dataset-meta').textContent = `${LISTINGS.length} listings · source: Craigslist SF Bay /bar`;
+  document.getElementById('listings-count').textContent = `${LISTINGS.length} active`;
+  renderStats();
+  renderGrid();
+})();
+
+function renderStats() {
+  const cats = {};
+  for (const l of LISTINGS) cats[l.has.category] = (cats[l.has.category] || 0) + 1;
+  const locs = new Set(LISTINGS.map(l => l.location.split(',')[0].trim()));
+  const wantTotal = LISTINGS.reduce((s, l) => s + l.wants.length, 0);
+  const specific = LISTINGS.filter(l => l.specific !== false).length;
+  document.getElementById('stats').innerHTML = `
+    <span><b>${LISTINGS.length}</b> listings</span>
+    <span><b>${wantTotal}</b> declared wants</span>
+    <span><b>${Object.keys(cats).length}</b> categories</span>
+    <span><b>${locs.size}</b> Bay Area locations</span>
+    <span><b>${specific}</b> with specific wants</span>
+  `;
+}
+
+function renderGrid() {
+  const q = filter.q.toLowerCase();
+  const filtered = LISTINGS.filter(l => {
+    if (filter.cat !== 'all') {
+      const c = l.has.category.toLowerCase();
+      if (!c.includes(filter.cat)) return false;
+    }
+    if (q) {
+      const blob = (l.user + ' ' + l.location + ' ' + l.has.title + ' ' + l.has.category + ' ' + l.has.story + ' ' + l.wants.map(w => w.thing + ' ' + (w.why||'')).join(' ')).toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  });
+  document.getElementById('grid').innerHTML = filtered.map(listingCard).join('');
+}
+
+function listingCard(l) {
+  const imgs = l.images || [];
+  const hero = imgs.length
+    ? `<img src="${escapeHtml(imgs[0])}" loading="lazy" alt="">${imgs.length > 1 ? `<span class="img-count">+${imgs.length - 1}</span>` : ''}`
+    : `<span class="no-img">no image</span>`;
+  return `
+    <div class="card" data-id="${escapeHtml(l.id)}">
+      <div class="card-img-wrap">${hero}</div>
+      <div class="card-body">
+        <div class="card-top">
+          <span class="card-user">${escapeHtml(l.user)}</span>
+          <span class="card-loc">· ${escapeHtml(l.location)}</span>
+          <span class="card-spacer"></span>
+          <span class="card-posted">${escapeHtml(l.id)}</span>
+        </div>
+        <div class="card-title">${escapeHtml(l.has.title)}</div>
+        <div class="card-meta">${escapeHtml(l.has.category)} · ${escapeHtml(l.has.condition)}</div>
+        <div class="card-story">${escapeHtml(l.has.story)}</div>
+        <div class="card-wants">
+          <div class="card-wants-label">Wants</div>
+          ${l.wants.map(w => `
+            <div class="card-want">
+              <span class="thing">${escapeHtml(w.thing)}</span>${w.why ? ` <span class="why">— ${escapeHtml(w.why)}</span>` : ''}
+              ${w.specific === false ? '<span class="catch">catch-all</span>' : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+document.getElementById('search').oninput = e => { filter.q = e.target.value; renderGrid(); };
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.onclick = () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    filter.cat = chip.dataset.cat;
+    renderGrid();
+  };
+});
+
+// ---- Matching ----
+const RINGS_SCHEMA = {
+  type: "object",
+  properties: {
+    rings: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          summary: { type: "string" },
+          quality: { type: "string", description: "strong | moderate | stretch" },
+          members: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                listing_id: { type: "string" },
+                satisfies_my_want: { type: "string", description: "Verbatim quote of THIS member's want being fulfilled." },
+                why_fits: { type: "string", description: "1 sentence explaining why the previous member's offer fits this want." },
+                edge_quality: { type: "string", description: "strong | moderate | stretch" }
+              },
+              required: ["listing_id", "satisfies_my_want", "why_fits", "edge_quality"]
+            }
+          }
+        },
+        required: ["title", "summary", "quality", "members"]
+      }
+    },
+    notes: { type: "string" }
+  },
+  required: ["rings"]
+};
+
+function compactListing(l) {
+  return {
+    id: l.id,
+    user: l.user,
+    loc: l.location,
+    has: `${l.has.title} (${l.has.category}, ${l.has.condition}) — ${l.has.story}`,
+    wants: l.wants.map(w => `${w.thing}${w.why ? ` — ${w.why}` : ''}${w.specific === false ? ' [catch-all]' : ''}`)
+  };
+}
+
+async function runMatch() {
+  if (!USER_LISTING) {
+    document.getElementById('rings').innerHTML = `<div class="empty">Upload a photo of something you want to trade first.</div>`;
+    return;
+  }
+  const cleanedWants = USER_WANTS.map(w => w.trim()).filter(Boolean);
+  if (!cleanedWants.length) {
+    document.getElementById('rings').innerHTML = `<div class="empty">Add at least one thing you'd take in return.</div>`;
+    return;
+  }
+  USER_LISTING.wants = cleanedWants.map(thing => ({ thing, why: '', specific: true }));
+  LISTINGS_BY_ID['you'] = USER_LISTING;
+
+  const btn = document.getElementById('find-btn');
+  btn.disabled = true;
+  const status = document.getElementById('matching-status');
+  status.innerHTML = '<span class="spinner"></span> finding your rings…';
+  document.getElementById('rings').innerHTML = '';
+  document.getElementById('match-stats').textContent = '';
+
+  const n = parseInt(document.getElementById('n-rings').value);
+  const maxLen = parseInt(document.getElementById('max-len').value);
+  const pool = LISTINGS.map(compactListing);
+  const userCompact = compactListing(USER_LISTING);
+  // Put user listing first so the model sees it prominently
+  const compact = [userCompact, ...pool];
+
+  const prompt = `You are matching real Craigslist barter listings. The FIRST listing (id "you") is the user who just posted. Find the BEST ${n} trade rings of length 2 to ${maxLen} that INCLUDE listing "you".
+
+A trade ring is a directed cycle. Member 1 receives from Member N. Member 2 receives from Member 1. Etc. Everyone gets one of their specific wants fulfilled, no money changes hands.
+
+HARD RULES:
+- EVERY returned ring MUST include listing_id "you".
+- "you" appears exactly once per ring (no duplicates).
+- No two members offer the same or near-identical items.
+- At MOST one catch-all edge per ring. Prefer zero.
+- satisfies_my_want must quote VERBATIM from that listing's wants.
+
+QUALITY:
+- strong: offer exactly matches a named want.
+- moderate: same category, reasonable substitute.
+- stretch: category match with creative interpretation.
+- ring.quality = strong if all edges strong; moderate if any moderate; stretch if any stretch.
+
+OUTPUT:
+- For each member, satisfies_my_want = their own want being fulfilled, why_fits = why the previous member's offer fits it.
+- Order rings strongest first. Prefer rings where the user ("you") ends up with something matching their FIRST want.
+
+LISTINGS (${compact.length} — "you" first):
+${JSON.stringify(compact)}`;
+
+  try {
+    const t0 = performance.now();
+    const r = await fetch(STREAM_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: RINGS_SCHEMA,
+          thinkingConfig: { thinkingBudget: 12000 }
+        }
+      })
+    });
+    if (!r.ok) {
+      const errBody = await r.text();
+      throw new Error(`HTTP ${r.status}: ${errBody.slice(0, 300)}`);
+    }
+
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let accText = '';
+    let renderedCount = 0;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      // Process SSE lines
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, nl);
+        buf = buf.slice(nl + 1);
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (!payload) continue;
+        try {
+          const chunk = JSON.parse(payload);
+          const t = chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (!t) continue;
+          accText += t;
+          const rings = extractCompletedRings(accText);
+          if (rings.length > renderedCount) {
+            renderRings(rings);
+            renderedCount = rings.length;
+            const dt = ((performance.now() - t0)/1000).toFixed(1);
+            document.getElementById('match-stats').innerHTML =
+              `<b>${rings.length}</b> ring${rings.length === 1 ? '' : 's'} so far · ${dt}s · streaming…`;
+          }
+        } catch(_) { /* incomplete JSON line */ }
+      }
+    }
+
+    // Final parse
+    const t1 = performance.now();
+    let finalRings = [];
+    let notes = '';
+    try {
+      const parsed = JSON.parse(accText);
+      finalRings = parsed.rings || [];
+      notes = parsed.notes || '';
+    } catch(_) {
+      finalRings = extractCompletedRings(accText);
+    }
+    renderRings(finalRings);
+    document.getElementById('match-stats').innerHTML =
+      `<b>${finalRings.length}</b> ring${finalRings.length === 1 ? '' : 's'} · ${((t1-t0)/1000).toFixed(1)}s`;
+    status.textContent = '';
+
+    if (!finalRings.length) {
+      document.getElementById('rings').innerHTML = `<div class="empty">No rings matched. ${escapeHtml(notes)}</div>`;
+    }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('rings').innerHTML = `<div class="err">${escapeHtml(e.message)}</div>`;
+    status.textContent = '';
+  }
+  btn.disabled = false;
+}
+
+// Extract any complete top-level ring objects from the streaming JSON text.
+// Tracks brace depth inside "rings": [ ... ] only.
+function extractCompletedRings(text) {
+  const arrKey = text.indexOf('"rings"');
+  if (arrKey < 0) return [];
+  const arrOpen = text.indexOf('[', arrKey);
+  if (arrOpen < 0) return [];
+
+  const rings = [];
+  let depth = 0, inStr = false, esc = false, objStart = -1;
+  for (let i = arrOpen + 1; i < text.length; i++) {
+    const c = text[i];
+    if (esc) { esc = false; continue; }
+    if (inStr) {
+      if (c === '\\') { esc = true; }
+      else if (c === '"') { inStr = false; }
+      continue;
+    }
+    if (c === '"') { inStr = true; continue; }
+    if (c === '{') {
+      if (depth === 0) objStart = i;
+      depth++;
+    } else if (c === '}') {
+      depth--;
+      if (depth === 0 && objStart >= 0) {
+        try { rings.push(JSON.parse(text.slice(objStart, i + 1))); } catch(_) {}
+        objStart = -1;
+      }
+    } else if (c === ']' && depth === 0) {
+      break; // end of rings array
+    }
+  }
+  return rings;
+}
+
+function renderRings(rings) {
+  document.getElementById('rings').innerHTML = rings.map((ring, idx) => {
+    const len = ring.members.length;
+    const stepsHtml = ring.members.map((m, k) => {
+      const l = LISTINGS_BY_ID[m.listing_id];
+      if (!l) return '';
+      const prevMember = ring.members[(k - 1 + len) % len];
+      const prev = LISTINGS_BY_ID[prevMember.listing_id];
+      const stepId = `r${idx}-s${k}`;
+      // Detail panels with full data on BOTH this member and what they receive
+      const detailsHtml = renderStepDetails(l, m, prev);
+      const isYou = m.listing_id === 'you';
+      return `
+        <div class="ring-step ${isYou ? 'is-you' : ''}" id="${stepId}">
+          <div class="step-side">
+            <div class="step-num">${(k+1).toString().padStart(2,'0')} / ${len.toString().padStart(2,'0')}</div>
+            <div class="step-thumb">${(l.images && l.images[0]) ? `<img src="${escapeHtml(l.images[0])}" loading="lazy" alt="">` : '<span class="no-img">no image</span>'}</div>
+            <div class="step-user">${escapeHtml(l.user)}</div>
+            <div class="step-loc">${escapeHtml(l.location)}</div>
+            <div class="step-link">${l.url ? `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">view on craigslist ↗</a>` : ''}</div>
+          </div>
+          <div class="step-main">
+            <div class="step-row">
+              <div class="step-row-label">Offers</div>
+              <div class="step-row-body">
+                <span class="item">${escapeHtml(l.has.title)}</span>
+                <div class="meta">${escapeHtml(l.has.category)} · ${escapeHtml(l.has.condition)}</div>
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-label">Receives</div>
+              <div class="step-row-body">
+                <span class="item">${prev ? escapeHtml(prev.has.title) : '—'}</span>
+                <div class="meta">${prev ? `from ${escapeHtml(prev.user)} · ${escapeHtml(prev.has.category)}` : ''}</div>
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-label">Fulfills want</div>
+              <div class="step-row-body">
+                <span class="item">"${escapeHtml(m.satisfies_my_want)}"</span>
+                <span class="quality-badge ${m.edge_quality}" style="margin-left:8px;">${escapeHtml(m.edge_quality)}</span>
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-label">Why it fits</div>
+              <div class="step-row-body">
+                <span class="reasoning">${escapeHtml(m.why_fits)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="step-expand" onclick="toggleStep('${stepId}')">
+            <span class="chev">›</span> show full listings for both sides
+          </div>
+          <div class="step-details">${detailsHtml}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="ring">
+        <div class="ring-header">
+          <span class="ring-title">${escapeHtml(ring.title)}</span>
+          <span class="ring-meta">${len}-way trade</span>
+          <span class="ring-spacer"></span>
+          <span class="quality-badge ${ring.quality}">${escapeHtml(ring.quality)}</span>
+        </div>
+        <div class="ring-summary">${escapeHtml(ring.summary)}</div>
+        <div class="ring-table">${stepsHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStepDetails(thisListing, member, prevListing) {
+  const isYou = thisListing.id === 'you';
+  const meName = isYou ? 'You' : thisListing.user;
+  const possMe = isYou ? 'Your' : `${thisListing.user}'s`;
+  const verbOffer = isYou ? 'are offering' : 'is offering';
+  const verbReceive = isYou ? 'will receive' : 'will receive';
+  const prevName = prevListing ? prevListing.user : '?';
+
+  return `
+    <div class="details-grid">
+      <div class="details-section">
+        <h4>${escapeHtml(meName)} ${escapeHtml(verbOffer)}</h4>
+        ${(thisListing.images && thisListing.images.length) ? `<div class="imgs">${thisListing.images.map(u => `<img src="${escapeHtml(u)}" loading="lazy" alt="">`).join('')}</div>` : '<div class="no-imgs">no images on this listing</div>'}
+        <div class="full-title">${escapeHtml(thisListing.has.title)}</div>
+        <div class="full-meta">${escapeHtml(thisListing.has.category)} · ${escapeHtml(thisListing.has.condition)}</div>
+        <div class="full-story">${escapeHtml(thisListing.has.story)}</div>
+        <h4 style="margin-top:14px;">${escapeHtml(possMe)} acceptable trades</h4>
+        ${thisListing.wants.map(w => {
+          const matched = w.thing === member.satisfies_my_want || (member.satisfies_my_want || '').includes(w.thing);
+          return `
+            <div class="want-item ${matched ? 'matched' : ''}">
+              <span class="thing">${escapeHtml(w.thing)}</span>${w.why ? ` <span class="why">— ${escapeHtml(w.why)}</span>` : ''}
+              ${w.specific === false ? '<span class="catch-tag">catch-all</span>' : ''}
+              ${matched ? '<span class="catch-tag" style="background:#fef3c7;color:var(--moderate);">← this one is fulfilled</span>' : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="details-section">
+        <h4>${escapeHtml(meName)} ${escapeHtml(verbReceive)} (from ${escapeHtml(prevName)})</h4>
+        ${prevListing ? `
+          ${(prevListing.images && prevListing.images.length) ? `<div class="imgs">${prevListing.images.map(u => `<img src="${escapeHtml(u)}" loading="lazy" alt="">`).join('')}</div>` : '<div class="no-imgs">no images on this listing</div>'}
+          <div class="full-title">${escapeHtml(prevListing.has.title)}</div>
+          <div class="full-meta">${escapeHtml(prevListing.has.category)} · ${escapeHtml(prevListing.has.condition)}</div>
+          <div class="full-story">${escapeHtml(prevListing.has.story)}</div>
+          <h4 style="margin-top:14px;">${escapeHtml(prevName)} is hoping for, in return</h4>
+          ${prevListing.wants.map(w => `
+            <div class="want-item">
+              <span class="thing">${escapeHtml(w.thing)}</span>${w.why ? ` <span class="why">— ${escapeHtml(w.why)}</span>` : ''}
+              ${w.specific === false ? '<span class="catch-tag">catch-all</span>' : ''}
+            </div>
+          `).join('')}
+        ` : '—'}
+      </div>
+    </div>
+  `;
+}
+
+function toggleStep(id) {
+  document.getElementById(id).classList.toggle('expanded');
+}
+
+// ---- User photo flow ----
+let USER_LISTING = null;          // structured listing after vision extract
+let USER_IMAGE_DATA = null;       // {b64, mime, dataUrl}
+let USER_WANTS = [];              // strings (editable)
+
+const USER_LISTING_SCHEMA = {
+  type: "object",
+  properties: {
+    title: { type: "string", description: "Concise product name (max 70 chars)" },
+    category: { type: "string" },
+    condition: { type: "string", description: "best guess from photo" },
+    brand: { type: "string" },
+    story: { type: "string", description: "1-2 sentence first-person description as if posting it." },
+    estimated_want_options: {
+      type: "array",
+      items: { type: "string" },
+      description: "3-5 specific, realistic things the seller might accept in trade. Be concrete (named items, not 'cash' or 'open to offers')."
+    }
+  },
+  required: ["title", "category", "condition", "story", "estimated_want_options"]
+};
+
+const uploadZone = document.getElementById('upload-zone');
+let fileInput, cameraInput;
+
+function wireUploadZone() {
+  fileInput = document.getElementById('file-input');
+  cameraInput = document.getElementById('camera-input');
+  const upBtn = document.getElementById('upload-btn');
+  const camBtn = document.getElementById('camera-btn');
+  const closeBtn = document.getElementById('close-btn');
+  if (upBtn) upBtn.onclick = e => { e.stopPropagation(); fileInput.click(); };
+  if (camBtn) camBtn.onclick = e => { e.stopPropagation(); cameraInput.click(); };
+  if (closeBtn) closeBtn.onclick = e => { e.stopPropagation(); resetUserListing(); };
+  if (fileInput) fileInput.onchange = e => { if (e.target.files[0]) loadUserPhoto(e.target.files[0]); };
+  if (cameraInput) cameraInput.onchange = e => { if (e.target.files[0]) loadUserPhoto(e.target.files[0]); };
+}
+uploadZone.ondragover = e => { e.preventDefault(); uploadZone.style.borderColor = 'var(--accent)'; };
+uploadZone.ondragleave = () => { uploadZone.style.borderColor = ''; };
+uploadZone.ondrop = e => { e.preventDefault(); uploadZone.style.borderColor = ''; if (e.dataTransfer.files[0]) loadUserPhoto(e.dataTransfer.files[0]); };
+wireUploadZone();
+
+function loadUserPhoto(file) {
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result;
+    USER_IMAGE_DATA = { b64: dataUrl.split(',')[1], mime: file.type, dataUrl };
+    uploadZone.classList.add('has-image');
+    uploadZone.innerHTML = `<img src="${dataUrl}"><button class="close-btn" id="close-btn" title="Remove and start over">×</button>`;
+    document.getElementById('close-btn').onclick = e => { e.stopPropagation(); resetUserListing(); };
+    document.getElementById('extracted').classList.remove('empty');
+    document.getElementById('extracted').innerHTML = `<span class="status"><span class="spinner"></span> reading your photo…</span>`;
+    document.getElementById('find-btn').disabled = true;
+    await extractUserListing();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function extractUserListing() {
+  try {
+    const body = {
+      contents: [{ parts: [
+        { inline_data: { mime_type: USER_IMAGE_DATA.mime, data: USER_IMAGE_DATA.b64 } },
+        { text: "Identify the item in this photo. Imagine it as a Craigslist barter listing. Return JSON per the schema. For estimated_want_options, suggest 4 specific things this person might realistically accept in trade — be concrete." }
+      ]}],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: USER_LISTING_SCHEMA,
+      }
+    };
+    const r = await fetch(MODEL_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (j.error) throw new Error(j.error.message);
+    const extracted = JSON.parse(j.candidates[0].content.parts[0].text);
+
+    USER_LISTING = {
+      id: 'you',
+      user: 'You',
+      location: 'Bay Area',
+      url: null,
+      images: [USER_IMAGE_DATA.dataUrl],
+      has: {
+        title: extracted.title,
+        category: extracted.category,
+        condition: extracted.condition,
+        story: extracted.story,
+      },
+      wants: [],
+      specific: true,
+    };
+    USER_WANTS = extracted.estimated_want_options.slice(0, 5);
+
+    const card = document.getElementById('extracted');
+    card.classList.remove('empty');
+    card.innerHTML = `
+      <label>Title</label>
+      <input class="title-input" id="edit-title" value="${escapeHtml(extracted.title)}">
+      <div class="row-2">
+        <div>
+          <label>Category</label>
+          <input id="edit-category" value="${escapeHtml(extracted.category)}">
+        </div>
+        <div>
+          <label>Condition</label>
+          <input id="edit-condition" value="${escapeHtml(extracted.condition)}">
+        </div>
+      </div>
+      <label>Description</label>
+      <textarea class="story-input" id="edit-story" rows="3">${escapeHtml(extracted.story)}</textarea>
+    `;
+    const sync = () => {
+      USER_LISTING.has.title = document.getElementById('edit-title').value;
+      USER_LISTING.has.category = document.getElementById('edit-category').value;
+      USER_LISTING.has.condition = document.getElementById('edit-condition').value;
+      USER_LISTING.has.story = document.getElementById('edit-story').value;
+    };
+    ['edit-title','edit-category','edit-condition','edit-story'].forEach(id => {
+      document.getElementById(id).oninput = sync;
+    });
+    // Auto-grow the textarea
+    const ta = document.getElementById('edit-story');
+    const grow = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+    ta.oninput = e => { sync(); grow(); };
+    setTimeout(grow, 0);
+
+    document.getElementById('wants-editor').style.display = '';
+    renderWantsEditor();
+    document.getElementById('find-btn').disabled = false;
+  } catch(e) {
+    document.getElementById('extracted').innerHTML = `<div class="err">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function resetUserListing() {
+  USER_LISTING = null;
+  USER_IMAGE_DATA = null;
+  USER_WANTS = [];
+  delete LISTINGS_BY_ID['you'];
+  fileInput.value = '';
+  cameraInput.value = '';
+  uploadZone.classList.remove('has-image');
+  uploadZone.innerHTML = `
+    <input type="file" id="file-input" accept="image/*" style="display:none">
+    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+    <button class="close-btn" id="close-btn" title="Remove and start over">×</button>
+    <div class="placeholder-icon">⬡</div>
+    <div class="placeholder-text">Photograph or upload what you'd trade away</div>
+    <div class="upload-actions">
+      <button class="upload-btn primary" id="camera-btn">📷 Take photo</button>
+      <button class="upload-btn" id="upload-btn">Upload from device</button>
+    </div>
+  `;
+  // Rewire the freshly-recreated controls
+  wireUploadZone();
+  const card = document.getElementById('extracted');
+  card.classList.add('empty');
+  card.innerHTML = 'Upload a photo to begin.';
+  document.getElementById('wants-editor').style.display = 'none';
+  document.getElementById('find-btn').disabled = true;
+  document.getElementById('rings').innerHTML = '';
+  document.getElementById('match-stats').textContent = '';
+}
+
+function renderWantsEditor() {
+  const list = document.getElementById('wants-list');
+  list.innerHTML = USER_WANTS.map((w, i) => `
+    <div class="want-input">
+      <input type="text" value="${escapeHtml(w)}" data-idx="${i}">
+      <span class="remove" data-idx="${i}">×</span>
+    </div>
+  `).join('');
+  list.querySelectorAll('input').forEach(inp => {
+    inp.oninput = e => { USER_WANTS[parseInt(e.target.dataset.idx)] = e.target.value; };
+  });
+  list.querySelectorAll('.remove').forEach(x => {
+    x.onclick = e => { USER_WANTS.splice(parseInt(e.target.dataset.idx), 1); renderWantsEditor(); };
+  });
+}
+
+document.getElementById('add-want-btn').onclick = () => {
+  USER_WANTS.push('');
+  renderWantsEditor();
+  // focus the new input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#wants-list input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 0);
+};
+
+document.getElementById('find-btn').onclick = runMatch;
+</script>
+</body>
+</html>
