@@ -1,200 +1,242 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Mic, Square, Volume2, Waves } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Mic, Radio, Square, Volume2 } from 'lucide-react';
 
-type VoicePhase = 'idle' | 'listening' | 'thinking' | 'speaking';
+type VoicePhase = 'idle' | 'connecting' | 'listening' | 'speaking';
 
 interface VoiceAgentControlProps {
-  onTranscript: (text: string) => Promise<string | void>;
-  onAudioCapture?: (file: File) => Promise<string | void>;
+  instructions: string;
+  conversationContext?: string;
+  onUserTranscript: (text: string) => void;
+  onAssistantDelta: (delta: string) => void;
+  onAssistantDone: (text: string) => void;
+  onError?: (message: string) => void;
   buttonClassName: string;
   iconClassName?: string;
   disabled?: boolean;
 }
 
-interface SpeechRecognitionAlternative {
-  transcript: string;
+interface RealtimeServerEvent {
+  type?: string;
+  delta?: string;
+  transcript?: string;
+  text?: string;
+  error?: {
+    message?: string;
+  };
 }
 
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  length: number;
-  [index: number]: SpeechRecognitionAlternative;
+interface ClientSecretResponse {
+  value?: string;
+  client_secret?: {
+    value?: string;
+  };
+  session?: {
+    client_secret?: {
+      value?: string;
+    };
+  };
+  error?: {
+    message?: string;
+  };
 }
 
-interface SpeechRecognitionResultList {
-  length: number;
-  [index: number]: SpeechRecognitionResult;
-}
+const REALTIME_CALL_URL = 'https://api.openai.com/v1/realtime/calls';
 
-interface SpeechRecognitionEvent extends Event {
-  resultIndex: number;
-  results: SpeechRecognitionResultList;
-}
+function extractClientSecret(data: ClientSecretResponse): string {
+  const value =
+    data.value ??
+    data.client_secret?.value ??
+    data.session?.client_secret?.value;
 
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
-}
-
-interface BrowserSpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onstart: (() => void) | null;
-  onend: (() => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-}
-
-type SpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
-
-const MIME_TYPES = [
-  'audio/webm;codecs=opus',
-  'audio/webm',
-  'audio/mp4',
-  'audio/ogg;codecs=opus',
-];
-
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  if (!value) {
+    throw new Error(data.error?.message || 'OpenAI Realtime session did not return a client secret.');
   }
+
+  return value;
 }
 
-function getSpeechRecognition() {
-  if (typeof window === 'undefined') return undefined;
-  return window.SpeechRecognition ?? window.webkitSpeechRecognition;
-}
+function buildInstructions(base: string, context?: string) {
+  const voiceRules = [
+    'You are running as The Oracle active voice agent.',
+    'Speak naturally and concisely. Keep replies short unless the user asks for detail.',
+    'Preserve the same safety rules: disclose that you are an AI agent, never finalize a deal without human approval, and never share private contact info.',
+    'When useful, mention the Pricing Agent, Seller Agent, Buyer Agent, Research Agent, or Trust Agent as specialist agents you can route work to.',
+  ].join('\n');
 
-function getSupportedMimeType() {
-  if (typeof MediaRecorder === 'undefined') return '';
-  return MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type)) ?? '';
-}
-
-function extensionForMimeType(mimeType: string) {
-  if (mimeType.includes('mp4')) return 'm4a';
-  if (mimeType.includes('ogg')) return 'ogg';
-  return 'webm';
-}
-
-function speak(text: string) {
-  return new Promise<void>((resolve) => {
-    if (!('speechSynthesis' in window) || !text.trim()) {
-      resolve();
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
-    window.speechSynthesis.speak(utterance);
-  });
+  return [base, voiceRules, context ? `Recent visible chat context:\n${context}` : '']
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 export default function VoiceAgentControl({
-  onTranscript,
-  onAudioCapture,
+  instructions,
+  conversationContext,
+  onUserTranscript,
+  onAssistantDelta,
+  onAssistantDone,
+  onError,
   buttonClassName,
   iconClassName = 'w-4 h-4',
   disabled = false,
 }: VoiceAgentControlProps) {
   const [enabled, setEnabled] = useState(false);
   const [phase, setPhase] = useState<VoicePhase>('idle');
-  const [interim, setInterim] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
+  const peerRef = useRef<RTCPeerConnection | null>(null);
+  const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const startListeningRef = useRef<() => void>(() => undefined);
-  const enabledRef = useRef(false);
-  const processingRef = useRef(false);
-  const transcriptRef = useRef('');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const assistantTranscriptRef = useRef('');
 
-  const stopListening = useCallback(() => {
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
-    setInterim('');
-  }, []);
+  const sessionInstructions = useMemo(
+    () => buildInstructions(instructions, conversationContext),
+    [conversationContext, instructions],
+  );
 
-  const stopStream = useCallback(() => {
+  const reportError = useCallback(
+    (message: string) => {
+      setError(message);
+      onError?.(message);
+    },
+    [onError],
+  );
+
+  const stopVoice = useCallback(() => {
+    dataChannelRef.current?.close();
+    dataChannelRef.current = null;
+
+    peerRef.current?.close();
+    peerRef.current = null;
+
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.srcObject = null;
+      audioRef.current.remove();
+      audioRef.current = null;
+    }
+
+    assistantTranscriptRef.current = '';
+    setEnabled(false);
+    setPhase('idle');
   }, []);
 
-  const runTurn = useCallback(
-    async (text: string) => {
-      const clean = text.trim();
-      if (!clean) return;
-
-      processingRef.current = true;
-      setInterim('');
-      setPhase('thinking');
-
-      try {
-        const reply = await onTranscript(clean);
-        if (enabledRef.current && reply?.trim()) {
+  const handleRealtimeEvent = useCallback(
+    (event: RealtimeServerEvent) => {
+      switch (event.type) {
+        case 'conversation.item.input_audio_transcription.completed':
+          if (event.transcript?.trim()) {
+            onUserTranscript(event.transcript.trim());
+          }
+          break;
+        case 'response.created':
+          assistantTranscriptRef.current = '';
           setPhase('speaking');
-          await speak(reply);
+          break;
+        case 'response.output_audio_transcript.delta':
+          if (event.delta) {
+            assistantTranscriptRef.current += event.delta;
+            onAssistantDelta(event.delta);
+          }
+          break;
+        case 'response.output_audio_transcript.done': {
+          const finalText = event.transcript || assistantTranscriptRef.current;
+          if (finalText.trim()) {
+            onAssistantDone(finalText.trim());
+          }
+          assistantTranscriptRef.current = '';
+          setPhase('listening');
+          break;
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Voice request failed.');
-      } finally {
-        processingRef.current = false;
-        if (!enabledRef.current) {
-          setPhase('idle');
+        case 'response.output_text.delta':
+          if (event.delta) {
+            assistantTranscriptRef.current += event.delta;
+            onAssistantDelta(event.delta);
+          }
+          break;
+        case 'response.output_text.done': {
+          const finalText = event.text || assistantTranscriptRef.current;
+          if (finalText.trim()) {
+            onAssistantDone(finalText.trim());
+          }
+          assistantTranscriptRef.current = '';
+          setPhase('listening');
+          break;
         }
+        case 'input_audio_buffer.speech_started':
+          setPhase('listening');
+          break;
+        case 'error':
+          reportError(event.error?.message || 'OpenAI Realtime voice error.');
+          break;
+        default:
+          break;
       }
     },
-    [onTranscript],
+    [onAssistantDelta, onAssistantDone, onUserTranscript, reportError],
   );
 
-  const runAudioTurn = useCallback(
-    async (file: File) => {
-      if (!onAudioCapture) return;
+  const startVoice = useCallback(async () => {
+    if (disabled || enabled) return;
 
-      processingRef.current = true;
-      setInterim('');
-      setPhase('thinking');
-
-      try {
-        const reply = await onAudioCapture(file);
-        if (reply?.trim()) {
-          setPhase('speaking');
-          await speak(reply);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Voice request failed.');
-      } finally {
-        processingRef.current = false;
-        enabledRef.current = false;
-        setEnabled(false);
-        setPhase('idle');
-      }
-    },
-    [onAudioCapture],
-  );
-
-  const startAudioFallback = useCallback(async () => {
-    if (!onAudioCapture) {
-      setError('Voice mode needs Chrome or another browser with speech recognition.');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      reportError('Realtime voice needs microphone access in this browser.');
       return;
     }
 
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setError('Voice mode needs microphone recording support in this browser.');
+    if (typeof RTCPeerConnection === 'undefined') {
+      reportError('Realtime voice needs WebRTC support in this browser.');
       return;
     }
+
+    setError(null);
+    setEnabled(true);
+    setPhase('connecting');
 
     try {
+      const tokenResponse = await fetch('/api/openai/realtime/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ instructions: sessionInstructions }),
+      });
+
+      const tokenData = (await tokenResponse.json()) as ClientSecretResponse;
+      if (!tokenResponse.ok) {
+        throw new Error(tokenData.error?.message || 'Could not create OpenAI Realtime session.');
+      }
+      const clientSecret = extractClientSecret(tokenData);
+
+      const peer = new RTCPeerConnection();
+      peerRef.current = peer;
+
+      const audio = new Audio();
+      audio.autoplay = true;
+      audio.setAttribute('playsinline', 'true');
+      audioRef.current = audio;
+      document.body.appendChild(audio);
+
+      peer.ontrack = (trackEvent) => {
+        audio.srcObject = trackEvent.streams[0];
+        void audio.play().catch(() => undefined);
+      };
+
+      peer.onconnectionstatechange = () => {
+        if (peer.connectionState === 'connected') {
+          setPhase('listening');
+        } else if (
+          peer.connectionState === 'failed' ||
+          peer.connectionState === 'closed' ||
+          peer.connectionState === 'disconnected'
+        ) {
+          stopVoice();
+        }
+      };
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -203,192 +245,66 @@ export default function VoiceAgentControl({
         },
         video: false,
       });
-      const mimeType = getSupportedMimeType();
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-
-      chunksRef.current = [];
       streamRef.current = stream;
-      recorderRef.current = recorder;
-      enabledRef.current = true;
-      setEnabled(true);
-      setPhase('listening');
-      setInterim('Recording... tap again to send.');
+      stream.getAudioTracks().forEach((track) => peer.addTrack(track, stream));
 
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
+      const dataChannel = peer.createDataChannel('oai-events');
+      dataChannelRef.current = dataChannel;
+      dataChannel.onmessage = (messageEvent) => {
+        try {
+          handleRealtimeEvent(JSON.parse(messageEvent.data) as RealtimeServerEvent);
+        } catch {
+          // Ignore malformed diagnostics from the data channel.
         }
       };
+      dataChannel.onerror = () => reportError('OpenAI Realtime data channel failed.');
 
-      recorder.onstop = () => {
-        const type = recorder.mimeType || mimeType || 'audio/webm';
-        const blob = new Blob(chunksRef.current, { type });
-        chunksRef.current = [];
-        recorderRef.current = null;
-        stopStream();
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
 
-        if (blob.size > 0) {
-          void runAudioTurn(
-            new File([blob], `oracle-voice-${Date.now()}.${extensionForMimeType(type)}`, {
-              type,
-            }),
-          );
-        } else {
-          enabledRef.current = false;
-          setEnabled(false);
-          setPhase('idle');
-        }
-      };
+      const sdpResponse = await fetch(REALTIME_CALL_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${clientSecret}`,
+          'Content-Type': 'application/sdp',
+        },
+        body: offer.sdp,
+      });
 
-      recorder.start();
-    } catch {
-      stopStream();
-      enabledRef.current = false;
-      setEnabled(false);
-      setPhase('idle');
-      setError('Microphone permission was blocked or no microphone was found.');
+      if (!sdpResponse.ok) {
+        throw new Error((await sdpResponse.text()) || 'OpenAI Realtime call failed.');
+      }
+
+      await peer.setRemoteDescription({
+        type: 'answer',
+        sdp: await sdpResponse.text(),
+      });
+    } catch (err) {
+      stopVoice();
+      reportError(err instanceof Error ? err.message : 'Could not start OpenAI Realtime voice.');
     }
-  }, [onAudioCapture, runAudioTurn, stopStream]);
-
-  const startListening = useCallback(() => {
-    const Recognition = getSpeechRecognition();
-    if (!Recognition) {
-      void startAudioFallback();
-      return;
-    }
-
-    if (!enabledRef.current || processingRef.current || recognitionRef.current) return;
-
-    const recognition = new Recognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    transcriptRef.current = '';
-    recognitionRef.current = recognition;
-
-    recognition.onstart = () => {
-      setError(null);
-      setPhase('listening');
-    };
-
-    recognition.onresult = (event) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i];
-        const transcript = Array.from({ length: result.length }, (_, idx) => result[idx]?.transcript ?? '').join('');
-        if (result.isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (interimTranscript.trim()) {
-        setInterim(interimTranscript.trim());
-      }
-
-      if (finalTranscript.trim()) {
-        transcriptRef.current = finalTranscript.trim();
-        recognition.stop();
-      }
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        setError(`Voice input stopped: ${event.error}`);
-      }
-    };
-
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      const finalText = transcriptRef.current;
-      transcriptRef.current = '';
-
-      if (finalText) {
-        void runTurn(finalText).then(() => {
-          if (enabledRef.current) {
-            window.setTimeout(() => startListeningRef.current(), 250);
-          }
-        });
-        return;
-      }
-
-      if (enabledRef.current && !processingRef.current) {
-        window.setTimeout(() => startListeningRef.current(), 350);
-      }
-    };
-
-    try {
-      recognition.start();
-    } catch {
-      recognitionRef.current = null;
-    }
-  }, [runTurn, startAudioFallback]);
-
-  useEffect(() => {
-    startListeningRef.current = startListening;
-  }, [startListening]);
-
-  const stopVoice = useCallback(() => {
-    enabledRef.current = false;
-    setEnabled(false);
-    setPhase('idle');
-    setInterim('');
-    stopListening();
-    const recorder = recorderRef.current;
-    if (recorder) {
-      recorder.ondataavailable = null;
-      recorder.onstop = null;
-      if (recorder.state !== 'inactive') {
-        recorder.stop();
-      }
-    }
-    recorderRef.current = null;
-    chunksRef.current = [];
-    stopStream();
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-  }, [stopListening, stopStream]);
+  }, [disabled, enabled, handleRealtimeEvent, reportError, sessionInstructions, stopVoice]);
 
   const toggleVoice = () => {
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      recorderRef.current.stop();
-      return;
-    }
-
     if (enabled) {
       stopVoice();
       return;
     }
 
-    if (disabled) return;
-    enabledRef.current = true;
-    setEnabled(true);
-    setError(null);
-    startListening();
+    void startVoice();
   };
-
-  useEffect(() => {
-    if (enabled && phase === 'idle' && !processingRef.current) {
-      startListening();
-    }
-  }, [enabled, phase, startListening]);
 
   useEffect(() => stopVoice, [stopVoice]);
 
   const active = enabled || phase !== 'idle';
   const title =
-    phase === 'listening'
-      ? 'Listening'
-      : phase === 'thinking'
-        ? 'Gemini is thinking'
+    phase === 'connecting'
+      ? 'Connecting OpenAI Realtime voice'
+      : phase === 'listening'
+        ? 'OpenAI Realtime voice is listening'
         : phase === 'speaking'
-          ? 'Speaking'
-          : 'Start voice conversation';
+          ? 'OpenAI Realtime voice is speaking'
+          : 'Start OpenAI Realtime voice';
 
   return (
     <>
@@ -396,15 +312,15 @@ export default function VoiceAgentControl({
         type="button"
         onClick={toggleVoice}
         disabled={disabled && !active}
-        title={active ? 'Stop voice conversation' : title}
-        aria-label={active ? 'Stop voice conversation' : title}
+        title={active ? 'Stop OpenAI Realtime voice' : title}
+        aria-label={active ? 'Stop OpenAI Realtime voice' : title}
         className={`${buttonClassName} ${active ? 'text-google-blue' : ''}`}
       >
         {active ? (
           phase === 'speaking' ? (
             <Volume2 className={iconClassName} />
-          ) : phase === 'thinking' ? (
-            <Waves className={`${iconClassName} animate-pulse`} />
+          ) : phase === 'connecting' ? (
+            <Radio className={`${iconClassName} animate-pulse`} />
           ) : (
             <Square className={iconClassName} />
           )
@@ -416,13 +332,11 @@ export default function VoiceAgentControl({
       {(enabled || error) && (
         <div className="fixed bottom-6 left-1/2 z-[70] max-w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 rounded-full border border-black/10 bg-white/95 px-4 py-2 text-xs font-medium text-text-secondary shadow-lg backdrop-blur">
           {error ??
-            (phase === 'listening'
-              ? interim || 'Listening...'
-              : phase === 'thinking'
-                ? 'Gemini is thinking...'
-                : phase === 'speaking'
-                  ? 'Speaking...'
-                  : 'Voice mode ready')}
+            (phase === 'connecting'
+              ? 'Connecting OpenAI Realtime voice...'
+              : phase === 'speaking'
+                ? 'Oracle is speaking...'
+                : 'Listening through OpenAI Realtime...')}
         </div>
       )}
     </>

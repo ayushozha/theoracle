@@ -60,6 +60,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const voiceModelIdRef = useRef<string | null>(null);
 
   const hasMessages = messages.length > 0;
 
@@ -81,6 +82,16 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
         for (const a of files) parts.push(await fileToInlinePart(a.file));
         return [...priorTurns, { role: 'user', parts }];
       },
+    [messages],
+  );
+
+  const voiceContext = useMemo(
+    () =>
+      messages
+        .filter((m) => !m.streaming && m.text.trim().length > 0)
+        .slice(-8)
+        .map((m) => `${m.role === 'user' ? 'User' : 'Oracle'}: ${m.text}`)
+        .join('\n'),
     [messages],
   );
 
@@ -150,6 +161,39 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   };
 
   const stop = () => abortRef.current?.abort();
+
+  const addVoiceUserTranscript = (text: string) => {
+    setError(null);
+    setMessages((prev) => [...prev, { id: newId(), role: 'user', text }]);
+  };
+
+  const appendVoiceAssistantDelta = (delta: string) => {
+    setMessages((prev) => {
+      let modelId = voiceModelIdRef.current;
+      if (!modelId) {
+        modelId = newId();
+        voiceModelIdRef.current = modelId;
+        return [...prev, { id: modelId, role: 'model', text: delta, streaming: true }];
+      }
+
+      return prev.map((m) => (m.id === modelId ? { ...m, text: m.text + delta } : m));
+    });
+  };
+
+  const completeVoiceAssistant = (text: string) => {
+    setMessages((prev) => {
+      const modelId = voiceModelIdRef.current;
+      voiceModelIdRef.current = null;
+
+      if (!modelId) {
+        return text ? [...prev, { id: newId(), role: 'model', text, streaming: false }] : prev;
+      }
+
+      return prev.map((m) =>
+        m.id === modelId ? { ...m, text: text || m.text, streaming: false } : m,
+      );
+    });
+  };
 
   const resetChat = () => {
     abortRef.current?.abort();
@@ -400,12 +444,12 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
             </button>
           ) : (
             <VoiceAgentControl
-              onTranscript={(text) => send(text, [])}
-              onAudioCapture={(file) =>
-                send('Voice message: respond to the spoken request in the attached audio.', [
-                  { file },
-                ])
-              }
+              instructions={CONCIERGE_SYSTEM_PROMPT}
+              conversationContext={voiceContext}
+              onUserTranscript={addVoiceUserTranscript}
+              onAssistantDelta={appendVoiceAssistantDelta}
+              onAssistantDone={completeVoiceAssistant}
+              onError={setError}
               buttonClassName="w-9 h-9 rounded-full flex items-center justify-center text-text-primary hover:bg-black/5"
               iconClassName="w-5 h-5"
               disabled={isStreaming}

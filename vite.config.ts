@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
 const GEMINI_MODEL = 'gemini-3.5-flash'
+const OPENAI_API_BASE = 'https://api.openai.com/v1'
+const OPENAI_REALTIME_MODEL = 'gpt-realtime'
 
 interface BodyRequest {
   on(event: 'data', listener: (chunk: Uint8Array | string) => void): void
@@ -16,6 +18,79 @@ function geminiApiPlugin(): Plugin {
     name: 'oracle-gemini-api',
     configureServer(server) {
       const env = loadEnv(server.config.mode, server.config.root, '')
+
+      server.middlewares.use('/api/openai/realtime/session', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+
+        const apiKey = env.OPENAI_API_KEY
+        if (!apiKey) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: 'Missing OPENAI_API_KEY in .env' }))
+          return
+        }
+
+        try {
+          const payload = await readJsonBody(req)
+          const instructions =
+            typeof payload.instructions === 'string'
+              ? payload.instructions.slice(0, 12000)
+              : undefined
+
+          const upstream = await fetch(`${OPENAI_API_BASE}/realtime/client_secrets`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              session: {
+                type: 'realtime',
+                model: env.OPENAI_REALTIME_MODEL || OPENAI_REALTIME_MODEL,
+                ...(instructions ? { instructions } : {}),
+                output_modalities: ['audio'],
+                audio: {
+                  input: {
+                    noise_reduction: { type: 'near_field' },
+                    transcription: {
+                      model: 'gpt-4o-mini-transcribe',
+                      language: 'en',
+                    },
+                    turn_detection: {
+                      type: 'server_vad',
+                      threshold: 0.5,
+                      prefix_padding_ms: 300,
+                      silence_duration_ms: 500,
+                      create_response: true,
+                      interrupt_response: true,
+                    },
+                  },
+                  output: {
+                    voice: env.OPENAI_REALTIME_VOICE || 'marin',
+                  },
+                },
+              },
+            }),
+          })
+
+          res.statusCode = upstream.status
+          res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json')
+          res.setHeader('Cache-Control', 'no-store')
+          res.end(await upstream.text())
+        } catch (error) {
+          server.config.logger.error(error instanceof Error ? error.message : String(error))
+          if (!res.writableEnded) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'OpenAI Realtime session failed' }))
+          }
+        }
+      })
 
       server.middlewares.use('/api/gemini/stream', async (req, res) => {
         if (req.method !== 'POST') {

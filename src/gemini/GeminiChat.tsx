@@ -88,6 +88,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
   const abortRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const voiceModelIdRef = useRef<string | null>(null);
 
   const updateMessage = (id: string, patch: (m: UiMessage) => UiMessage) =>
     setMessages((prev) => prev.map((m) => (m.id === id ? patch(m) : m)));
@@ -121,6 +122,16 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
         }
         return [...priorTurns, { role: 'user', parts }];
       },
+    [messages],
+  );
+
+  const voiceContext = useMemo(
+    () =>
+      messages
+        .filter((m) => !m.streaming && m.text.trim().length > 0)
+        .slice(-8)
+        .map((m) => `${m.role === 'user' ? 'User' : 'Oracle'}: ${m.text}`)
+        .join('\n'),
     [messages],
   );
 
@@ -239,6 +250,39 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
 
   const stop = () => {
     abortRef.current?.abort();
+  };
+
+  const addVoiceUserTranscript = (text: string) => {
+    setError(null);
+    setMessages((prev) => [...prev, { id: newId(), role: 'user', text }]);
+  };
+
+  const appendVoiceAssistantDelta = (delta: string) => {
+    setMessages((prev) => {
+      let modelId = voiceModelIdRef.current;
+      if (!modelId) {
+        modelId = newId();
+        voiceModelIdRef.current = modelId;
+        return [...prev, { id: modelId, role: 'model', text: delta, streaming: true }];
+      }
+
+      return prev.map((m) => (m.id === modelId ? { ...m, text: m.text + delta } : m));
+    });
+  };
+
+  const completeVoiceAssistant = (text: string) => {
+    setMessages((prev) => {
+      const modelId = voiceModelIdRef.current;
+      voiceModelIdRef.current = null;
+
+      if (!modelId) {
+        return text ? [...prev, { id: newId(), role: 'model', text, streaming: false }] : prev;
+      }
+
+      return prev.map((m) =>
+        m.id === modelId ? { ...m, text: text || m.text, streaming: false } : m,
+      );
+    });
   };
 
   const addFiles = (files: FileList | File[] | null) => {
@@ -503,12 +547,12 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
             buttonClassName="p-2 rounded-full hover:bg-black/5 text-text-secondary disabled:opacity-50"
           />
           <VoiceAgentControl
-            onTranscript={(text) => send(text, [])}
-            onAudioCapture={(file) =>
-              send('Voice message: respond to the spoken request in the attached audio.', [
-                { file },
-              ])
-            }
+            instructions={CONCIERGE_SYSTEM_PROMPT}
+            conversationContext={voiceContext}
+            onUserTranscript={addVoiceUserTranscript}
+            onAssistantDelta={appendVoiceAssistantDelta}
+            onAssistantDone={completeVoiceAssistant}
+            onError={setError}
             buttonClassName="p-2 rounded-full hover:bg-black/5 text-text-secondary"
             disabled={isStreaming}
           />
@@ -560,7 +604,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
           <div className="mt-4 flex items-center justify-between text-[11px] text-text-muted px-2">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-google-green" />
-              Powered by Gemini 3.5 Flash · vision · streaming · active voice
+              Gemini 3.5 Flash chat · OpenAI Realtime voice
             </div>
             {onStartAgentFlow && (
               <button
