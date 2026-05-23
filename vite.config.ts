@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
+const GEMINI_MODEL = 'gemini-3.5-flash'
 
 interface BodyRequest {
   on(event: 'data', listener: (chunk: Uint8Array | string) => void): void
@@ -34,11 +35,7 @@ function geminiApiPlugin(): Plugin {
 
         try {
           const payload = await readJsonBody(req)
-          const model =
-            (typeof payload.model === 'string' ? payload.model : undefined) ||
-            env.VITE_GEMINI_MODEL ||
-            env.GEMINI_MODEL ||
-            'gemini-3.5-flash'
+          const model = GEMINI_MODEL
 
           const body: Record<string, unknown> = {
             contents: payload.contents,

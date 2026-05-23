@@ -81,8 +81,7 @@ async def _run_browser_use(task: str, on_event) -> str:
             "GEMINI_API_KEY is not set. Export it (or VITE_GEMINI_API_KEY) before starting the server."
         )
 
-    model_id = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
-    llm = ChatGoogle(model=model_id, api_key=gemini_key)
+    llm = ChatGoogle(model="gemini-3.5-flash", api_key=gemini_key)
 
     # Headed so the developer can also watch the live window during dev; flip
     # to True (headless=True) for CI/production. We don't need a visible

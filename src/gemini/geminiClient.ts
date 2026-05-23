@@ -38,13 +38,10 @@ export interface StreamOptions {
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const DEFAULT_BACKEND_ENDPOINT = '/api/gemini/stream';
+const GEMINI_MODEL = 'gemini-3.5-flash';
 
-function resolveModel(model?: string): string {
-  return (
-    model ||
-    (import.meta.env.VITE_GEMINI_MODEL as string | undefined) ||
-    'gemini-3.5-flash'
-  );
+function resolveModel(_model?: string): string {
+  return GEMINI_MODEL;
 }
 
 function resolveEndpoint(): string {
