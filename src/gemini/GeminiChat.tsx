@@ -18,7 +18,7 @@ import {
 } from './geminiClient';
 import { CONCIERGE_SYSTEM_PROMPT } from './agentPersona';
 import CameraCapture from './CameraCapture';
-import MicrophoneCapture from './MicrophoneCapture';
+import VoiceAgentControl from './VoiceAgentControl';
 import BrowserViewport from '../browser/BrowserViewport';
 import BrowserViewportModal from '../browser/BrowserViewportModal';
 import { streamBrowserResearch } from '../browser/browserClient';
@@ -124,10 +124,14 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
     [messages],
   );
 
-  const send = async () => {
-    if (isStreaming) return;
-    const text = input.trim();
-    if (!text && attachments.length === 0) return;
+  const send = async (
+    overrideText?: string,
+    overrideAttachments?: Attachment[],
+  ): Promise<string> => {
+    if (isStreaming) return '';
+    const text = (overrideText ?? input).trim();
+    const activeAttachments = overrideAttachments ?? attachments;
+    if (!text && activeAttachments.length === 0) return '';
 
     setError(null);
 
@@ -135,7 +139,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
       id: newId(),
       role: 'user',
       text,
-      attachments: attachments.map((a) => ({
+      attachments: activeAttachments.map((a) => ({
         name: a.file.name,
         mime: a.file.type,
         previewUrl: a.previewUrl,
@@ -159,13 +163,14 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
     }
 
     setMessages((prev) => [...prev, userMsg, modelMsg]);
-    setInput('');
-    const sentAttachments = attachments;
-    setAttachments([]);
+    if (overrideText === undefined) setInput('');
+    const sentAttachments = activeAttachments;
+    if (overrideAttachments === undefined) setAttachments([]);
     setIsStreaming(true);
 
     const controller = new AbortController();
     abortRef.current = controller;
+    let reply = '';
 
     try {
       if (useBrowser) {
@@ -190,6 +195,11 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
                   ? `Browser-use error: ${frame.message}`
                   : m.text,
           }));
+          if (frame.type === 'done') {
+            reply = frame.report || 'Research complete.';
+          } else if (frame.type === 'error') {
+            reply = `Browser-use error: ${frame.message}`;
+          }
         }
       } else {
         const contents = await buildHistory(text, sentAttachments);
@@ -197,6 +207,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
           systemInstruction: CONCIERGE_SYSTEM_PROMPT,
           signal: controller.signal,
         })) {
+          reply += delta;
           updateMessage(modelId, (m) => ({ ...m, text: m.text + delta }));
         }
       }
@@ -222,6 +233,8 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
       // Free preview URLs.
       sentAttachments.forEach((a) => a.previewUrl && URL.revokeObjectURL(a.previewUrl));
     }
+
+    return reply;
   };
 
   const stop = () => {
@@ -489,9 +502,15 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
             onCapture={(file) => addFiles([file])}
             buttonClassName="p-2 rounded-full hover:bg-black/5 text-text-secondary disabled:opacity-50"
           />
-          <MicrophoneCapture
-            onCapture={(file) => addFiles([file])}
+          <VoiceAgentControl
+            onTranscript={(text) => send(text, [])}
+            onAudioCapture={(file) =>
+              send('Voice message: respond to the spoken request in the attached audio.', [
+                { file },
+              ])
+            }
             buttonClassName="p-2 rounded-full hover:bg-black/5 text-text-secondary"
+            disabled={isStreaming}
           />
           <input
             ref={fileInputRef}
@@ -527,7 +546,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
             </button>
           ) : (
             <button
-              onClick={send}
+              onClick={() => void send()}
               disabled={!input.trim() && attachments.length === 0}
               title="Send"
               className="p-2 rounded-full gemini-gradient text-white shadow-md disabled:opacity-40"
@@ -541,7 +560,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
           <div className="mt-4 flex items-center justify-between text-[11px] text-text-muted px-2">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-google-green" />
-              Powered by Gemini 3.5 Flash · vision · streaming · file upload
+              Powered by Gemini 3.5 Flash · vision · streaming · active voice
             </div>
             {onStartAgentFlow && (
               <button

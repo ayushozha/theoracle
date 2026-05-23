@@ -17,7 +17,7 @@ import {
 } from './geminiClient';
 import { CONCIERGE_SYSTEM_PROMPT } from './agentPersona';
 import CameraCapture from './CameraCapture';
-import MicrophoneCapture from './MicrophoneCapture';
+import VoiceAgentControl from './VoiceAgentControl';
 
 interface UiMessage {
   id: string;
@@ -84,17 +84,21 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
     [messages],
   );
 
-  const send = async () => {
-    if (isStreaming) return;
-    const text = input.trim();
-    if (!text && attachments.length === 0) return;
+  const send = async (
+    overrideText?: string,
+    overrideAttachments?: Attachment[],
+  ): Promise<string> => {
+    if (isStreaming) return '';
+    const text = (overrideText ?? input).trim();
+    const activeAttachments = overrideAttachments ?? attachments;
+    if (!text && activeAttachments.length === 0) return '';
     setError(null);
 
     const userMsg: UiMessage = {
       id: newId(),
       role: 'user',
       text,
-      attachments: attachments.map((a) => ({
+      attachments: activeAttachments.map((a) => ({
         name: a.file.name,
         mime: a.file.type,
         previewUrl: a.previewUrl,
@@ -109,13 +113,14 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
     };
 
     setMessages((prev) => [...prev, userMsg, modelMsg]);
-    setInput('');
-    const sentAttachments = attachments;
-    setAttachments([]);
+    if (overrideText === undefined) setInput('');
+    const sentAttachments = activeAttachments;
+    if (overrideAttachments === undefined) setAttachments([]);
     setIsStreaming(true);
 
     const controller = new AbortController();
     abortRef.current = controller;
+    let reply = '';
 
     try {
       const contents = await buildHistory(text, sentAttachments);
@@ -123,6 +128,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
         systemInstruction: CONCIERGE_SYSTEM_PROMPT,
         signal: controller.signal,
       })) {
+        reply += delta;
         setMessages((prev) =>
           prev.map((m) => (m.id === modelId ? { ...m, text: m.text + delta } : m)),
         );
@@ -139,6 +145,8 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
       abortRef.current = null;
       sentAttachments.forEach((a) => a.previewUrl && URL.revokeObjectURL(a.previewUrl));
     }
+
+    return reply;
   };
 
   const stop = () => abortRef.current?.abort();
@@ -384,17 +392,23 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
             </button>
           ) : input || attachments.length ? (
             <button
-              onClick={send}
+              onClick={() => void send()}
               title="Send"
               className="w-9 h-9 rounded-full gemini-gradient text-white flex items-center justify-center shadow-md"
             >
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
-            <MicrophoneCapture
-              onCapture={(file) => addFiles([file])}
+            <VoiceAgentControl
+              onTranscript={(text) => send(text, [])}
+              onAudioCapture={(file) =>
+                send('Voice message: respond to the spoken request in the attached audio.', [
+                  { file },
+                ])
+              }
               buttonClassName="w-9 h-9 rounded-full flex items-center justify-center text-text-primary hover:bg-black/5"
               iconClassName="w-5 h-5"
+              disabled={isStreaming}
             />
           )}
         </div>

@@ -40,7 +40,7 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const DEFAULT_BACKEND_ENDPOINT = '/api/gemini/stream';
 const GEMINI_MODEL = 'gemini-3.5-flash';
 
-function resolveModel(_model?: string): string {
+function resolveModel(): string {
   return GEMINI_MODEL;
 }
 
@@ -63,7 +63,7 @@ export async function* streamGeminiChat(
   contents: GeminiContent[],
   opts: StreamOptions = {},
 ): AsyncGenerator<string, void, void> {
-  const model = resolveModel(opts.model);
+  const model = resolveModel();
 
   const body: Record<string, unknown> = { contents };
   if (model) {
