@@ -1,0 +1,163 @@
+{
+  "agent_id": "research_agent_v1",
+  "name": "MarketScout_001",
+  "role": "research",
+  "display_name": "Research Agent",
+  "managed_runtime": "gemini-managed-agent",
+  "model": "gemini-3.5-flash",
+  "color_token": "emerald",
+  "purpose": "Run a Gemini Deep Research-style multi-step investigation across secondhand marketplaces to recommend the best channel(s) for this specific item.",
+  "goal": "Produce a defensible channel recommendation for the MacBook Pro 14\" — ranked by expected sale price, sell-through time, fees, and scam risk — so the Seller Agent knows where to publish first.",
+  "system_prompt": "You are the Marketplace Research Agent for The Oracle / AgentBazaar. You behave like Gemini Deep Research: (1) restate the user's research goal, (2) propose a numbered research plan, (3) survey each approved secondhand marketplace, (4) score every channel on Expected Net Payout, Sell-Through Time, Fee Drag, Buyer Quality, and Scam Surface (0–10 each), (5) synthesize a final ranked recommendation. You ONLY cite facts that you can attribute to public marketplace policy pages, completed-listing data, or seeded comp data. You never invent fees or stats. You always close with a one-paragraph 'why this channel first' rationale tied to the seller's floor price and pickup constraints.",
+  "context": {
+    "item_id": "macbook_001",
+    "item_profile": {
+      "product_class": "MacBook Pro 14\"",
+      "chip": "Apple M3 Pro",
+      "ram_gb": 18,
+      "storage_gb": 512,
+      "color": "Space Black",
+      "condition": "Good / Mint",
+      "battery_cycles": 142,
+      "accessories": ["original charger"]
+    },
+    "seller_constraints": {
+      "floor_price": 725,
+      "target_price": 850,
+      "pickup_preference": "Ferry Building / Shack15",
+      "shipping_ok": false,
+      "human_approval_required": true
+    }
+  },
+  "research_plan": [
+    "Step 1 — Restate the question: where should this specific MacBook be listed first to clear above $725 within 7 days?",
+    "Step 2 — Enumerate candidate channels: eBay, Swappa, BackMarket, Facebook Marketplace, OfferUp, Craigslist SF, Mercari, Reddit r/AppleSwap, Apple Trade-In.",
+    "Step 3 — Pull each channel's current fee structure, payment rails, and pickup support from public policy pages.",
+    "Step 4 — Pull last-30-day sold-comp distribution for M3 Pro 14\" 18/512 from approved comp sources.",
+    "Step 5 — Score each channel 0–10 on Net Payout, Sell-Through Time, Fee Drag, Buyer Quality, Scam Surface.",
+    "Step 6 — Reject channels that violate seller constraints (e.g., shipping-only, mail-in only).",
+    "Step 7 — Rank surviving channels and write a one-paragraph 'publish here first' rationale.",
+    "Step 8 — Save raw findings to /workspace/channel_research.json and the executive summary to /workspace/channel_report.md."
+  ],
+  "allowed_actions": [
+    "Read approved marketplace fee/policy pages.",
+    "Read seeded sold-comp data.",
+    "Score channels against seller constraints.",
+    "Reject channels that require shipping when the seller wants local pickup.",
+    "Emit /workspace/channel_research.json and /workspace/channel_report.md."
+  ],
+  "blocked_actions": [
+    "Invent fee percentages or sold-comp prices.",
+    "Recommend a channel that requires shipping when the seller has opted out.",
+    "Recommend a channel whose typical clearing price falls below the seller floor.",
+    "Scrape platforms in violation of their terms of service.",
+    "Persist data outside /workspace."
+  ],
+  "tools": [
+    "fetch_channel_policy",
+    "fetch_sold_comps",
+    "score_channel",
+    "rank_channels",
+    "write_workspace_file"
+  ],
+  "logs": [
+    "🧭 Spawning Managed Agent Sandbox (env: python-3.11-isolated)...",
+    "🎯 Restating goal: 'List MacBook Pro 14\" M3 Pro 18/512 above $725 floor within 7 days, local pickup only.'",
+    "📋 Drafting research plan (8 steps)...",
+    "🌐 Surveying 9 candidate channels: eBay, Swappa, BackMarket, FB Marketplace, OfferUp, Craigslist SF, Mercari, r/AppleSwap, Apple Trade-In...",
+    "📑 Fetching public fee schedules and payout policies...",
+    "📊 Pulling 30-day sold comps for M3 Pro 14\" 18/512 (47 sold listings)...",
+    "🧮 Scoring channels on 5 axes: Net Payout, Sell-Through, Fee Drag, Buyer Quality, Scam Surface...",
+    "🚫 Rejecting 'Apple Trade-In' — clearing price $610 falls below seller floor $725.",
+    "🚫 Rejecting 'Mercari' — shipping-only, violates local pickup preference.",
+    "🏆 Ranking 7 surviving channels by composite score...",
+    "💾 Saved raw findings -> /workspace/channel_research.json",
+    "💾 Saved executive summary -> /workspace/channel_report.md",
+    "✅ Research complete in 18ms. Top recommendation: Swappa (local) → eBay (national fallback)."
+  ],
+  "channel_scorecards": [
+    {
+      "channel": "Swappa",
+      "supports_local_pickup": true,
+      "fee_pct": 3,
+      "expected_net_payout_usd": 815,
+      "median_days_to_sell": 4,
+      "scores": { "net_payout": 9, "sell_through": 8, "fee_drag": 9, "buyer_quality": 9, "scam_surface": 8 },
+      "composite": 8.6,
+      "notes": "Apple-literate buyer base. Built-in IMEI/serial verification. Local Swappa Local feature matches Ferry Building pickup."
+    },
+    {
+      "channel": "eBay",
+      "supports_local_pickup": true,
+      "fee_pct": 13.25,
+      "expected_net_payout_usd": 745,
+      "median_days_to_sell": 3,
+      "scores": { "net_payout": 6, "sell_through": 9, "fee_drag": 4, "buyer_quality": 7, "scam_surface": 6 },
+      "composite": 6.4,
+      "notes": "Fastest clear, but Final Value Fee 13.25% + payment processing erodes net. Strong buyer protection cuts both ways."
+    },
+    {
+      "channel": "Facebook Marketplace",
+      "supports_local_pickup": true,
+      "fee_pct": 0,
+      "expected_net_payout_usd": 790,
+      "median_days_to_sell": 5,
+      "scores": { "net_payout": 9, "sell_through": 7, "fee_drag": 10, "buyer_quality": 5, "scam_surface": 4 },
+      "composite": 7.0,
+      "notes": "Zero fees on local pickup. High scam volume — Zelle/Cash App fraud, payment-code scams. Trust Agent screening required."
+    },
+    {
+      "channel": "Craigslist SF",
+      "supports_local_pickup": true,
+      "fee_pct": 0,
+      "expected_net_payout_usd": 770,
+      "median_days_to_sell": 6,
+      "scores": { "net_payout": 8, "sell_through": 6, "fee_drag": 10, "buyer_quality": 4, "scam_surface": 3 },
+      "composite": 6.2,
+      "notes": "No fees, fully anonymous. Highest scam surface (PayPal G&S reversals, fake cashier checks). Cash-only public pickup required."
+    },
+    {
+      "channel": "OfferUp",
+      "supports_local_pickup": true,
+      "fee_pct": 12.9,
+      "expected_net_payout_usd": 740,
+      "median_days_to_sell": 7,
+      "scores": { "net_payout": 6, "sell_through": 5, "fee_drag": 4, "buyer_quality": 6, "scam_surface": 6 },
+      "composite": 5.4,
+      "notes": "Local-first but lowballer-heavy on premium electronics. TruYou verification helps but doesn't deter scams."
+    },
+    {
+      "channel": "BackMarket (Seller)",
+      "supports_local_pickup": false,
+      "fee_pct": 10,
+      "expected_net_payout_usd": 720,
+      "median_days_to_sell": 10,
+      "scores": { "net_payout": 5, "sell_through": 4, "fee_drag": 5, "buyer_quality": 9, "scam_surface": 9 },
+      "composite": 6.4,
+      "notes": "Lowest scam surface, mail-in only. Excluded from final ranking — violates local pickup constraint but kept for transparency."
+    },
+    {
+      "channel": "r/AppleSwap",
+      "supports_local_pickup": true,
+      "fee_pct": 0,
+      "expected_net_payout_usd": 780,
+      "median_days_to_sell": 5,
+      "scores": { "net_payout": 8, "sell_through": 6, "fee_drag": 10, "buyer_quality": 8, "scam_surface": 7 },
+      "composite": 7.8,
+      "notes": "Mod-verified PayPal G&S with timestamp photos. Strong Apple buyer base. Karma/heatware gates filter low-trust accounts."
+    }
+  ],
+  "rejected_channels": [
+    { "channel": "Apple Trade-In", "reason": "Quoted trade-in value $610 falls below seller floor $725." },
+    { "channel": "Mercari", "reason": "Shipping-only platform — violates seller's local-pickup-only preference." }
+  ],
+  "channel_report": {
+    "top_recommendation": "Swappa",
+    "fallback_recommendation": "eBay (with local pickup enabled)",
+    "expected_clearing_price": 815,
+    "expected_days_to_sell": 4,
+    "rationale": "Swappa wins on composite score (8.6) because its 3% fee preserves $815 net at the $840 list price, its Apple-literate buyer base reduces negotiation drag, and Swappa Local supports the seller's Ferry Building pickup preference. r/AppleSwap is a strong secondary listing (composite 7.8) — zero fees and a verified buyer pool — but slower median sell-through. eBay is the national fallback if local listings stall past day 5: highest sell-through (3 days) at the cost of a 13.25% fee, which still nets $745, above the $725 floor.",
+    "publish_order": ["Swappa", "r/AppleSwap", "Facebook Marketplace", "eBay"],
+    "status": "complete"
+  }
+}
