@@ -14,11 +14,11 @@ import {
   streamGeminiChat,
   fileToInlinePart,
   type GeminiContent,
-  type GeminiPart,
 } from './geminiClient';
 import { CONCIERGE_SYSTEM_PROMPT } from './agentPersona';
 import CameraCapture from './CameraCapture';
 import VoiceAgentControl from './VoiceAgentControl';
+import { buildUserParts, canPreviewImage } from './chatFlow';
 import BrowserViewport from '../browser/BrowserViewport';
 import BrowserViewportModal from '../browser/BrowserViewportModal';
 import { streamBrowserResearch } from '../browser/browserClient';
@@ -115,8 +115,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
             parts: [{ text: m.text }],
           }));
 
-        const parts: GeminiPart[] = [];
-        if (userText.trim()) parts.push({ text: userText });
+        const parts = buildUserParts(userText, files);
         for (const a of files) {
           parts.push(await fileToInlinePart(a.file));
         }
@@ -289,7 +288,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
     if (!files) return;
     const next: Attachment[] = [];
     for (const file of Array.from(files)) {
-      const previewUrl = file.type.startsWith('image/')
+      const previewUrl = canPreviewImage(file)
         ? URL.createObjectURL(file)
         : undefined;
       next.push({ file, previewUrl });
@@ -604,7 +603,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
           <div className="mt-4 flex items-center justify-between text-[11px] text-text-muted px-2">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-google-green" />
-              Gemini 3.5 Flash chat · OpenAI Realtime voice
+              Gemini 3.5 Flash chat · live voice
             </div>
             {onStartAgentFlow && (
               <button

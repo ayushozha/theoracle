@@ -13,11 +13,19 @@ import {
   streamGeminiChat,
   fileToInlinePart,
   type GeminiContent,
-  type GeminiPart,
 } from './geminiClient';
 import { CONCIERGE_SYSTEM_PROMPT } from './agentPersona';
 import CameraCapture from './CameraCapture';
 import VoiceAgentControl from './VoiceAgentControl';
+import { buildUserParts, canPreviewImage } from './chatFlow';
+import BrowserViewport from '../browser/BrowserViewport';
+import BrowserViewportModal from '../browser/BrowserViewportModal';
+import { streamBrowserResearch } from '../browser/browserClient';
+import {
+  initialBrowserViewState,
+  reduceBrowserState,
+  type BrowserViewState,
+} from '../browser/types';
 
 interface UiMessage {
   id: string;
@@ -25,6 +33,19 @@ interface UiMessage {
   text: string;
   attachments?: { name: string; mime: string; previewUrl?: string }[];
   streaming?: boolean;
+  /** Live browser-use viewport state for this message (research turns only). */
+  browser?: BrowserViewState;
+}
+
+// Heuristic: route the user's turn through the browser-use research backend
+// instead of the plain Gemini chat call. Same matcher as GeminiChat.tsx.
+function isResearchIntent(text: string): boolean {
+  const t = text.toLowerCase();
+  return (
+    /\b(research|browse|browsing|where (should|can) i (sell|list)|find comps?|compare (prices|marketplaces?)|scan (the )?market|live ?browse|surf (the )?web|check (ebay|swappa|craigslist|facebook marketplace|offerup|mercari|backmarket))\b/.test(
+      t,
+    ) || t.startsWith('/research')
+  );
 }
 
 interface Attachment {
@@ -44,6 +65,7 @@ const QUICK_PROMPTS = [
   "What's a fair price for this?",
   'Is this offer a scam?',
   'Draft a listing for me',
+  'Research where to sell my MacBook live',
 ];
 
 const newId = () =>
@@ -55,6 +77,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedBrowserId, setExpandedBrowserId] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,8 +100,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
           .filter((m) => !m.streaming && m.text.length > 0)
           .map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
 
-        const parts: GeminiPart[] = [];
-        if (userText.trim()) parts.push({ text: userText });
+        const parts = buildUserParts(userText, files);
         for (const a of files) parts.push(await fileToInlinePart(a.file));
         return [...priorTurns, { role: 'user', parts }];
       },
@@ -116,11 +138,15 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
       })),
     };
     const modelId = newId();
+    const useBrowser = isResearchIntent(text);
     const modelMsg: UiMessage = {
       id: modelId,
       role: 'model',
-      text: '',
+      text: useBrowser
+        ? 'Spinning up the Research Agent and a live Chromium session…'
+        : '',
       streaming: true,
+      browser: useBrowser ? { ...initialBrowserViewState } : undefined,
     };
 
     setMessages((prev) => [...prev, userMsg, modelMsg]);
@@ -133,25 +159,59 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
     abortRef.current = controller;
     let reply = '';
 
+    const patchMessage = (patch: (m: UiMessage) => UiMessage) =>
+      setMessages((prev) => prev.map((m) => (m.id === modelId ? patch(m) : m)));
+
     try {
-      const contents = await buildHistory(text, sentAttachments);
-      for await (const delta of streamGeminiChat(contents, {
-        systemInstruction: CONCIERGE_SYSTEM_PROMPT,
-        signal: controller.signal,
-      })) {
-        reply += delta;
-        setMessages((prev) =>
-          prev.map((m) => (m.id === modelId ? { ...m, text: m.text + delta } : m)),
-        );
+      if (useBrowser) {
+        const taskPrompt = text.replace(/^\/research\s*/i, '').trim();
+        for await (const frame of streamBrowserResearch({
+          task:
+            taskPrompt ||
+            'Research where to sell my MacBook Pro M3 Pro (18GB / 512GB, Good/Mint, charger included) to clear above $725 with local Ferry Building pickup.',
+          signal: controller.signal,
+        })) {
+          patchMessage((m) => ({
+            ...m,
+            browser: reduceBrowserState(
+              m.browser ?? initialBrowserViewState,
+              frame,
+            ),
+            text:
+              frame.type === 'done'
+                ? frame.report || 'Research complete.'
+                : frame.type === 'error'
+                  ? `Browser-use error: ${frame.message}`
+                  : m.text,
+          }));
+          if (frame.type === 'done') reply = frame.report || 'Research complete.';
+          else if (frame.type === 'error') reply = `Browser-use error: ${frame.message}`;
+        }
+      } else {
+        const contents = await buildHistory(text, sentAttachments);
+        for await (const delta of streamGeminiChat(contents, {
+          systemInstruction: CONCIERGE_SYSTEM_PROMPT,
+          signal: controller.signal,
+        })) {
+          reply += delta;
+          patchMessage((m) => ({ ...m, text: m.text + delta }));
+        }
       }
     } catch (err) {
       if (!controller.signal.aborted) {
-        setError(err instanceof Error ? err.message : String(err));
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg);
+        if (useBrowser) {
+          patchMessage((m) => ({
+            ...m,
+            browser: m.browser
+              ? { ...m.browser, error: msg, status: 'error' }
+              : m.browser,
+          }));
+        }
       }
     } finally {
-      setMessages((prev) =>
-        prev.map((m) => (m.id === modelId ? { ...m, streaming: false } : m)),
-      );
+      patchMessage((m) => ({ ...m, streaming: false }));
       setIsStreaming(false);
       abortRef.current = null;
       sentAttachments.forEach((a) => a.previewUrl && URL.revokeObjectURL(a.previewUrl));
@@ -214,7 +274,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
     if (!files) return;
     const next: Attachment[] = [];
     for (const file of Array.from(files)) {
-      const previewUrl = file.type.startsWith('image/')
+      const previewUrl = canPreviewImage(file)
         ? URL.createObjectURL(file)
         : undefined;
       next.push({ file, previewUrl });
@@ -333,7 +393,13 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
                         : 'oracle-bubble-model'
                     }
                   >
-                    {m.text || (m.streaming ? (
+                    {m.browser && (
+                      <BrowserViewport
+                        state={m.browser}
+                        onExpand={() => setExpandedBrowserId(m.id)}
+                      />
+                    )}
+                    {m.text || (m.streaming && !m.browser ? (
                       <span className="typing-dots inline-flex items-center">
                         <span /><span /><span />
                       </span>
@@ -483,6 +549,18 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
           </button>
         )}
       </main>
+
+      {expandedBrowserId &&
+        (() => {
+          const expanded = messages.find((m) => m.id === expandedBrowserId);
+          if (!expanded?.browser) return null;
+          return (
+            <BrowserViewportModal
+              state={expanded.browser}
+              onClose={() => setExpandedBrowserId(null)}
+            />
+          );
+        })()}
     </div>
   );
 }

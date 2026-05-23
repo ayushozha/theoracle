@@ -433,13 +433,17 @@ p {
 }
 
 .oracle-bubble-model {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.78);
   color: var(--text-primary);
-  border: none;
-  padding: 6px 0;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 20px 20px 20px 6px;
+  padding: 12px 16px;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.55;
   white-space: pre-wrap;
+  box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.24);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 /* ─────────────── Dashboard grid ─────────────── */
