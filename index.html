@@ -435,6 +435,7 @@
 <div class="tabs">
   <button class="tab active" data-tab="trade">Trade something</button>
   <button class="tab" data-tab="chains">Open chains <span class="badge" id="chains-count">…</span></button>
+  <button class="tab" data-tab="fulfilled">Fulfilled <span class="badge" id="rings-count">…</span></button>
 </div>
 
 <div class="tab-panel active" id="panel-trade">
@@ -522,6 +523,16 @@
   </div>
 </div><!-- end panel-chains -->
 
+<div class="tab-panel" id="panel-fulfilled">
+  <div class="section">
+    <div class="section-head">
+      <h2>Fulfilled trade rings</h2>
+      <span class="desc">Closed rings already sitting in the pool. Everyone gets a specific want fulfilled — they just need to meet up.</span>
+    </div>
+    <div id="rings-list"></div>
+  </div>
+</div><!-- end panel-fulfilled -->
+
 <script src="config.local.js"></script>
 <script>
 // On Cloud Run / hosted: hit the server proxy at /gemini/... (key injected server-side).
@@ -540,26 +551,28 @@ const STREAM_URL = `${GEMINI_BASE}/models/${MODEL}:streamGenerateContent?alt=sse
 const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let LISTINGS = [];
 let LISTINGS_BY_ID = {};
-let OPEN_CHAINS = [];  // from chains_cache.json
+let OPEN_CHAINS = [];   // from chains_cache.json
+let CLOSED_RINGS = [];  // from rings_cache.json
 let filter = { q: '', cat: 'all' };
 
 (async () => {
-  const [seedRes, chainsRes] = await Promise.all([
+  const [seedRes, chainsRes, ringsRes] = await Promise.all([
     fetch('seed.json'),
     fetch('chains_cache.json'),
+    fetch('rings_cache.json'),
   ]);
   LISTINGS = await seedRes.json();
   LISTINGS_BY_ID = Object.fromEntries(LISTINGS.map(l => [l.id, l]));
-  try {
-    const chainsData = await chainsRes.json();
-    OPEN_CHAINS = chainsData.open_chains || [];
-  } catch(_) { OPEN_CHAINS = []; }
-  document.getElementById('dataset-meta').textContent = `${LISTINGS.length} listings · ${OPEN_CHAINS.length} open chains · Craigslist SF Bay /bar`;
+  try { OPEN_CHAINS = (await chainsRes.json()).open_chains || []; } catch(_) { OPEN_CHAINS = []; }
+  try { CLOSED_RINGS = (await ringsRes.json()).closed_rings || []; } catch(_) { CLOSED_RINGS = []; }
+  document.getElementById('dataset-meta').textContent = `${LISTINGS.length} listings · ${OPEN_CHAINS.length} open chains · ${CLOSED_RINGS.length} closed rings · Craigslist SF Bay /bar`;
   document.getElementById('listings-count').textContent = `${LISTINGS.length} active`;
   document.getElementById('chains-count').textContent = OPEN_CHAINS.length;
+  document.getElementById('rings-count').textContent = CLOSED_RINGS.length;
   renderStats();
   renderGrid();
   renderChains();
+  renderFulfilled();
 })();
 
 // ---- Tabs ----
@@ -572,6 +585,66 @@ document.querySelectorAll('.tab').forEach(tab => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 });
+
+// ---- Fulfilled (closed) rings ----
+function renderFulfilled() {
+  const list = document.getElementById('rings-list');
+  if (!CLOSED_RINGS.length) {
+    list.innerHTML = '<div class="empty">No closed rings cached.</div>';
+    return;
+  }
+  const sorted = CLOSED_RINGS.slice().sort((a, b) => {
+    const aImgs = a.members.reduce((n, m) => n + ((LISTINGS_BY_ID[m.listing_id]?.images?.length || 0) > 0 ? 1 : 0), 0);
+    const bImgs = b.members.reduce((n, m) => n + ((LISTINGS_BY_ID[m.listing_id]?.images?.length || 0) > 0 ? 1 : 0), 0);
+    if (bImgs !== aImgs) return bImgs - aImgs;
+    const rank = q => q === 'strong' ? 0 : q === 'moderate' ? 1 : 2;
+    return rank(a.ring_quality) - rank(b.ring_quality);
+  });
+  list.innerHTML = sorted.map(ring => {
+    const len = ring.members.length;
+    const heroSlots = ring.members.map(m => {
+      const l = LISTINGS_BY_ID[m.listing_id];
+      const img = l && l.images && l.images[0];
+      return img
+        ? `<div class="slot"><img src="${escapeHtml(img)}" loading="lazy" alt=""></div>`
+        : `<div class="slot"><span class="no-img-text">${escapeHtml((l && l.has.title) || '?')}</span></div>`;
+    }).join('<div class="arrow">→</div>');
+    const heroHtml = `<div class="chain-hero">${heroSlots}<div class="arrow">↻</div></div>`;
+    const rowsHtml = ring.members.map((m, k) => {
+      const l = LISTINGS_BY_ID[m.listing_id];
+      if (!l) return '';
+      const thumb = (l.images && l.images[0])
+        ? `<div class="thumb"><img src="${escapeHtml(l.images[0])}" loading="lazy"></div>`
+        : `<div class="thumb"><span class="no-img">no img</span></div>`;
+      const eqClass = m.edge_quality || '';
+      const contactBtn = l.url ? `<a class="btn contact" href="${escapeHtml(l.url)}" target="_blank" rel="noopener">Reply ↗</a>` : '';
+      return `
+        <div class="chain-card-row">
+          ${thumb}
+          <div>
+            <div class="who">${escapeHtml(l.user)} <span class="loc">· ${escapeHtml(l.location)}</span></div>
+            <div class="offer">${escapeHtml(l.has.title)}</div>
+            <div class="satisfies">→ gets <em>"${escapeHtml(m.satisfies_my_want)}"</em> <span class="quality-badge ${eqClass}" style="margin-left:4px;">${escapeHtml(eqClass)}</span></div>
+            <div class="satisfies" style="color:var(--text-2); font-style:normal; margin-top:2px;">${escapeHtml(m.why_fits)}</div>
+            <div style="margin-top:6px;">${contactBtn}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    const qclass = ring.ring_quality || '';
+    return `
+      <div class="chain-card">
+        ${heroHtml}
+        <div class="chain-card-head">
+          <span class="chain-card-id">${escapeHtml(ring.id)}</span>
+          <span class="chain-card-summary">${escapeHtml(ring.summary)}</span>
+          <span class="quality-badge ${qclass}">${escapeHtml(qclass)}</span>
+        </div>
+        ${rowsHtml}
+      </div>
+    `;
+  }).join('');
+}
 
 // ---- Open chains rendering ----
 function renderChains() {

@@ -1,0 +1,509 @@
+{
+  "closed_rings": [
+    {
+      "id": "ring_1",
+      "summary": "High quality 2-way trade: Fishing gear for a hardshell guitar case.",
+      "ring_quality": "high",
+      "members": [
+        {
+          "listing_id": "cl-7918460337",
+          "satisfies_my_want": "Hardshell Dreadnought Guitar Case",
+          "why_fits": "cl-7920774813 offers a dreadnought-sized acoustic guitar case from the 50s/60s.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7920774813",
+          "satisfies_my_want": "Fishing Equipment",
+          "why_fits": "cl-7918460337 offers a brand new LL Bean spinning rod and reel combo.",
+          "edge_quality": "high"
+        }
+      ]
+    },
+    {
+      "id": "ring_2",
+      "summary": "High quality 2-way trade: Soprano ukulele for a classical guitar.",
+      "ring_quality": "high",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "satisfies_my_want": "Guitar",
+          "why_fits": "cl-7935973078 offers a vintage Japanese classical guitar.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7935973078",
+          "satisfies_my_want": "Ukulele",
+          "why_fits": "cl-7917789821 offers a vintage Roy Smeck soprano ukulele.",
+          "edge_quality": "high"
+        }
+      ]
+    },
+    {
+      "id": "ring_3",
+      "summary": "High quality 2-way trade: Cabin cruiser boat for professional concrete construction.",
+      "ring_quality": "high",
+      "members": [
+        {
+          "listing_id": "cl-7930601852",
+          "satisfies_my_want": "Concrete work",
+          "why_fits": "cl-7929310656 offers professional concrete construction services.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7929310656",
+          "satisfies_my_want": "Boats",
+          "why_fits": "cl-7930601852 offers a 1981 Chris Craft cabin cruiser boat.",
+          "edge_quality": "high"
+        }
+      ]
+    },
+    {
+      "id": "ring_4",
+      "summary": "Stretch 2-way trade: New DIY car ports for professional electrical services.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7901357186",
+          "satisfies_my_want": "electrical work for 3 separate garages",
+          "why_fits": "cl-7918008753 offers professional electrical services from a licensed electrician.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7918008753",
+          "satisfies_my_want": "Trade for anything of value [CA]",
+          "why_fits": "cl-7901357186 offers a set of new DIY 2-car garage ports in boxes.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_5",
+      "summary": "High quality 2-way trade: 1930 Model A Roadster for a 1975 Harley shovelhead.",
+      "ring_quality": "high",
+      "members": [
+        {
+          "listing_id": "cl-7925956126",
+          "satisfies_my_want": "Motorcycle",
+          "why_fits": "cl-7935719303 offers a 1975 Harley FXE Super Wide Glide shovelhead.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7935719303",
+          "satisfies_my_want": "car",
+          "why_fits": "cl-7925956126 offers a 1930 Model A Shay Rumble Seat Roadster.",
+          "edge_quality": "high"
+        }
+      ]
+    },
+    {
+      "id": "ring_6",
+      "summary": "High quality 2-way trade: Classic convertible roadster for a vintage Honda motorcycle.",
+      "ring_quality": "high",
+      "members": [
+        {
+          "listing_id": "cl-7935827801",
+          "satisfies_my_want": "Motorcycle (true valued $5,000+)",
+          "why_fits": "cl-7907784038 offers a rare, fully operational 1967 Honda 305 Dream.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7907784038",
+          "satisfies_my_want": "classic convertible",
+          "why_fits": "cl-7935827801 offers a classic 1930 Ford Model A Shay Rumble Seat Roadster.",
+          "edge_quality": "high"
+        }
+      ]
+    },
+    {
+      "id": "ring_7",
+      "summary": "Stretch 3-way trade: Painting/drywall, Mini Cooper car, and classic International truck.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7927639511",
+          "satisfies_my_want": "Car",
+          "why_fits": "cl-7917521830 offers a 2015 Mini Cooper Sport with current registration.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7917521830",
+          "satisfies_my_want": "small pickup Truck",
+          "why_fits": "cl-7911058673 offers a classic 1937 International rat rod pickup truck.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7911058673",
+          "satisfies_my_want": "Best offer [CA]",
+          "why_fits": "cl-7927639511 offers professional painting and drywall services.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_8",
+      "summary": "Stretch 2-way trade: House painting services for an Aprilia scooter.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7928338162",
+          "satisfies_my_want": "scooter",
+          "why_fits": "cl-7903794836 offers an Aprilia 450cc Italian scooter with new tires.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7903794836",
+          "satisfies_my_want": "trade [CA]",
+          "why_fits": "cl-7928338162 offers professional home painting and drywall services.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_9",
+      "summary": "Stretch 2-way trade: Closed loop extractor for a 2013 BMW 335i.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7901597429",
+          "satisfies_my_want": "BMW",
+          "why_fits": "cl-7929789610 offers a well-maintained 2013 BMW 335i Sedan.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7929789610",
+          "satisfies_my_want": "Trade offers [CA]",
+          "why_fits": "cl-7901597429 offers an ASME certified closed loop extractor system.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_10",
+      "summary": "Stretch 2-way trade: Closed loop extractor for a Mercedes Benz car.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7923542520",
+          "satisfies_my_want": "Mercedes vehicle",
+          "why_fits": "cl-7936147361 offers a Mercedes Benz car.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7936147361",
+          "satisfies_my_want": "Trade offers [CA]",
+          "why_fits": "cl-7923542520 offers an ASME certified high-capacity closed loop extractor.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_11",
+      "summary": "Stretch 2-way trade: Closed loop extractor for a classic 1934 Ford Sedan.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7917266822",
+          "satisfies_my_want": "Classic cars",
+          "why_fits": "cl-7928408006 offers an all-steel 1934 Ford Sedan classic car.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7928408006",
+          "satisfies_my_want": "Trade/Barter [CA]",
+          "why_fits": "cl-7917266822 offers a racked ASME certified closed loop extractor.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_12",
+      "summary": "Stretch 3-way trade: Extractor, 1990 BMW, and non-operational 2001 Harley road project.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7906795979",
+          "satisfies_my_want": "BMW",
+          "why_fits": "cl-7925769753 offers a 1990 BMW 525i 5-speed.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7925769753",
+          "satisfies_my_want": "Harley-Davidson project",
+          "why_fits": "cl-7919037730 offers a non-operational 2001 Harley Roadglide project.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7919037730",
+          "satisfies_my_want": "best offer [CA]",
+          "why_fits": "cl-7906795979 offers an ASME certified closed loop extractor.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_13",
+      "summary": "Stretch 2-way trade: Mercedes Benz ML 430 SUV for a classic 1954 Delivery van.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7904731062",
+          "satisfies_my_want": "classic old car or truck",
+          "why_fits": "cl-7929651160 offers a 1954 aerodynamic classic Delivery vehicle.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7929651160",
+          "satisfies_my_want": "Trade [CA]",
+          "why_fits": "cl-7904731062 offers a 1999 Mercedes Benz ML 430 SUV.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_14",
+      "summary": "Stretch 2-way trade: Clipper cards with $900 value for a $100 wine/liquor gift certificate.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7936182807",
+          "satisfies_my_want": "gift cards",
+          "why_fits": "cl-7925849045 offers a $100 gift certificate for D and M Wine and Liquors.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7925849045",
+          "satisfies_my_want": "Trade for anything [CA]",
+          "why_fits": "cl-7936182807 offers loaded Clipper transit cards worth $900.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_15",
+      "summary": "Stretch 2-way trade: Full gym set for a 2001 Harley Roadglide motorcycle.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7915249229",
+          "satisfies_my_want": "Motorcycle (salvage operative OK)",
+          "why_fits": "cl-7916362528 offers a 2001 Harley Roadglide (non-op, great project/rebuild potential).",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7916362528",
+          "satisfies_my_want": "best offer [CA]",
+          "why_fits": "cl-7915249229 offers a full commercial grade gym workout equipment set.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_16",
+      "summary": "Stretch 2-way trade: Gym workout equipment for a 1946 Harley Police Bike.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7919618912",
+          "satisfies_my_want": "Motorcycle (operative running condition, salvage OK)",
+          "why_fits": "cl-7920887906 offers a restored, running 1946 Harley Davidson WL45 police bike.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7920887906",
+          "satisfies_my_want": "Best cash offer plus a great trade [CA]",
+          "why_fits": "cl-7919618912 offers a full set of commercial gym workout equipment and benches.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_17",
+      "summary": "Stretch 2-way trade: High end dental services for professional tree removal.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7928254360",
+          "satisfies_my_want": "Tree removal",
+          "why_fits": "cl-7932615260 offers professional family-owned landscaping and tree care services.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7932615260",
+          "satisfies_my_want": "Trade for anything of value [CA]",
+          "why_fits": "cl-7928254360 offers high-end dental services including implants.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_18",
+      "summary": "Stretch 2-way trade: Extension ladder for 18 premium solar panels.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7934105717",
+          "satisfies_my_want": "Used solar panels",
+          "why_fits": "cl-7898732471 offers 18 new LG MC4 260W solar panels.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7898732471",
+          "satisfies_my_want": "Barter / Trade offers [CA]",
+          "why_fits": "cl-7934105717 offers a 24' extension ladder.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_19",
+      "summary": "Stretch 4-way trade: BMW car, Breitling watch, mountain bike, and thousands of action figures.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7921112245",
+          "satisfies_my_want": "genuine time pieces",
+          "why_fits": "cl-7931448853 offers a Breitling Mariner watch in great condition.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7931448853",
+          "satisfies_my_want": "Mountain bike",
+          "why_fits": "cl-7933969814 offers a blue 7-speed Kent mountain bike.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7933969814",
+          "satisfies_my_want": "old toys",
+          "why_fits": "cl-7921383779 offers $10,000 worth of factory case sealed action figures.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7921383779",
+          "satisfies_my_want": "Trades of equivalent value [CA]",
+          "why_fits": "cl-7921112245 offers a 1990 BMW 525i 5-speed car.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_20",
+      "summary": "Stretch 2-way trade: Gutter services for a mechanical transmission rebuild.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7924024766",
+          "satisfies_my_want": "Transmission rebuild for a 2008 Ford F-150 4.2L V6 2WD",
+          "why_fits": "cl-7930767467 offers comprehensive RV mechanical repairs and rebuilds.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7930767467",
+          "satisfies_my_want": "Open to offers [CA]",
+          "why_fits": "cl-7924024766 offers roofing and seamless gutter services.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_21",
+      "summary": "Stretch 2-way trade: Fire Stick media system for a Meta Quest VR headset.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7927383275",
+          "satisfies_my_want": "Meta Quest VR headset",
+          "why_fits": "cl-7927383648 offers a Meta Quest 2 preloaded with 50 games.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7927383648",
+          "satisfies_my_want": "Trade items [CA]",
+          "why_fits": "cl-7927383275 offers a pre-configured, sports-loaded streaming Fire Stick.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_22",
+      "summary": "Stretch 2-way trade: Live aboard boat for business coaching alliance.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7911366403",
+          "satisfies_my_want": "Partner/Captain for a large liveaboard boat",
+          "why_fits": "cl-7911369084 offers entrepreneur coaching, alliance, and business mentoring services.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7911369084",
+          "satisfies_my_want": "Alliances/Partners [CA]",
+          "why_fits": "cl-7911366403 offers a partnership on a large liveaboard boat.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_23",
+      "summary": "High quality 2-way trade: Business consulting partnerships and alliances.",
+      "ring_quality": "high",
+      "members": [
+        {
+          "listing_id": "cl-7912017117",
+          "satisfies_my_want": "Alliances and Partners",
+          "why_fits": "cl-7911381933 offers professional business coaching and alliance partners.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7911381933",
+          "satisfies_my_want": "Partners Alliances Joint Ventures",
+          "why_fits": "cl-7912017117 offers professional entrepreneurial mentorship and strategic alliances.",
+          "edge_quality": "high"
+        }
+      ]
+    },
+    {
+      "id": "ring_24",
+      "summary": "Stretch 3-way trade: Basketball cards, Warriors trading cards, and rare Buffalo nickels.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7917843817",
+          "satisfies_my_want": "Warriors Cards",
+          "why_fits": "cl-7911558620 offers high-value collectible Warriors trading cards.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7911558620",
+          "satisfies_my_want": "coins",
+          "why_fits": "cl-7935196513 offers two rare vintage Buffalo Nickels (1923 and 1936).",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7935196513",
+          "satisfies_my_want": "Trade offers [CA]",
+          "why_fits": "cl-7917843817 offers a collection of Michael Jordan cards.",
+          "edge_quality": "stretch"
+        }
+      ]
+    },
+    {
+      "id": "ring_25",
+      "summary": "Stretch 2-way trade: BMW and flatbed trailer for a 1995 Chevy Tahoe SUV.",
+      "ring_quality": "stretch",
+      "members": [
+        {
+          "listing_id": "cl-7917196718",
+          "satisfies_my_want": "a truck",
+          "why_fits": "cl-7933815318 offers a newly painted and fully updated 1995 Chevy Tahoe SUV/Truck.",
+          "edge_quality": "high"
+        },
+        {
+          "listing_id": "cl-7933815318",
+          "satisfies_my_want": "other trades [CA]",
+          "why_fits": "cl-7917196718 offers a fully loaded flatbed utility trailer and a BMW 330ci car.",
+          "edge_quality": "stretch"
+        }
+      ]
+    }
+  ]
+}
