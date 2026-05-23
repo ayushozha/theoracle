@@ -801,7 +801,8 @@ HARD RULES:
 - "you" appears exactly once per ring (no duplicates).
 - No two members offer the same or near-identical items.
 - At MOST one catch-all edge per ring. Prefer zero.
-- satisfies_my_want must quote VERBATIM from that listing's wants.
+- satisfies_my_want must quote VERBATIM from that listing's wants AND must be SEMANTICALLY satisfied by the previous member's concrete offer. If the previous member is offering a motorcycle, you CANNOT claim that satisfies a want for "Steam Deck" — pick a different want from their list, or don't include them in the ring at all. If no want of theirs is actually satisfied by what's offered, the ring is invalid.
+- The ring title and summary MUST only name members and items that actually appear in the ring. Do not reference items from the hint cache that aren't in the ring you returned.
 
 QUALITY:
 - strong: offer exactly matches a named want.
@@ -834,7 +835,7 @@ ${JSON.stringify(compact)}`;
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: RINGS_SCHEMA,
-          thinkingConfig: { thinkingBudget: 2000 }
+          thinkingConfig: { thinkingBudget: 6000 }
         }
       })
     });
