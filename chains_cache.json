@@ -1,0 +1,994 @@
+{
+  "open_chains": [
+    {
+      "id": "chain-1",
+      "summary": "Dental Services \u2192 Mercedes Mechanic, missing someone with Window Fabrication who wants Mercedes repair",
+      "members": [
+        {
+          "listing_id": "cl-7923384166",
+          "offer_summary": "Dental services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "dental services"
+        },
+        {
+          "listing_id": "cl-7904793696",
+          "offer_summary": "Mercedes mechanic barter with dentist",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Window fabrication services",
+        "would_accept_from_tail": "Mercedes mechanic services for older vintage models",
+        "first_member_wants_verbatim": "Window fabrication"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-2",
+      "summary": "Dental Services \u2192 Roofing Services, missing someone with Window Fabrication who wants Roofing",
+      "members": [
+        {
+          "listing_id": "cl-7923384166",
+          "offer_summary": "Dental services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "dental services"
+        },
+        {
+          "listing_id": "cl-7912863306",
+          "offer_summary": "Roofing Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Window fabrication services",
+        "would_accept_from_tail": "Roofing services for property",
+        "first_member_wants_verbatim": "Window fabrication"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-3",
+      "summary": "Dental Services \u2192 Mercedes Mechanic, missing someone with Metal Working who wants Mercedes repair",
+      "members": [
+        {
+          "listing_id": "cl-7904788285",
+          "offer_summary": "Dental Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "dental services"
+        },
+        {
+          "listing_id": "cl-7904793696",
+          "offer_summary": "Mercedes mechanic barter with dentist",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Metal working services",
+        "would_accept_from_tail": "Mercedes mechanic services",
+        "first_member_wants_verbatim": "Metal working services"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-4",
+      "summary": "Dental Services \u2192 Roofing Services, missing someone with Metal Working who wants Roofing",
+      "members": [
+        {
+          "listing_id": "cl-7904788285",
+          "offer_summary": "Dental Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "dental services"
+        },
+        {
+          "listing_id": "cl-7912863306",
+          "offer_summary": "Roofing Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Metal working services",
+        "would_accept_from_tail": "Roofing services",
+        "first_member_wants_verbatim": "Metal working services"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-5",
+      "summary": "Meyer Lemons \u2192 Succulents, missing someone with other fruits who wants Succulents",
+      "members": [
+        {
+          "listing_id": "cl-7934405618",
+          "offer_summary": "Freshly-picked organic Meyer lemons",
+          "edge_quality": "strong",
+          "satisfies_next_want": "fruit"
+        },
+        {
+          "listing_id": "cl-7904224500",
+          "offer_summary": "Succulents assortment unlimited",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Other fresh fruits or vegetables",
+        "would_accept_from_tail": "An assortment of healthy succulents",
+        "first_member_wants_verbatim": "other fruits/vegetables [catch-all]"
+      },
+      "chain_quality": "moderate"
+    },
+    {
+      "id": "chain-6",
+      "summary": "Meyer Lemons \u2192 Plump Succulents, missing someone with other fruits who wants Succulents",
+      "members": [
+        {
+          "listing_id": "cl-7934405618",
+          "offer_summary": "Freshly-picked organic Meyer lemons",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Fresh fruit"
+        },
+        {
+          "listing_id": "cl-7935049435",
+          "offer_summary": "Healthy plump succulents",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Other organic fruits or vegetables",
+        "would_accept_from_tail": "Healthy plump succulents",
+        "first_member_wants_verbatim": "other fruits/vegetables [catch-all]"
+      },
+      "chain_quality": "moderate"
+    },
+    {
+      "id": "chain-7",
+      "summary": "Meyer Lemons \u2192 Succulents, missing someone with other fruits who wants Succulents",
+      "members": [
+        {
+          "listing_id": "cl-7934405618",
+          "offer_summary": "Freshly-picked organic Meyer lemons",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Fresh fruit"
+        },
+        {
+          "listing_id": "cl-7920826475",
+          "offer_summary": "Succulents assortment",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Other types of fresh produce",
+        "would_accept_from_tail": "Healthy, easy-to-propagate succulents",
+        "first_member_wants_verbatim": "other fruits/vegetables [catch-all]"
+      },
+      "chain_quality": "moderate"
+    },
+    {
+      "id": "chain-8",
+      "summary": "Tutor & Cleaner \u2192 Caregiving Apartment, missing someone with Haircut/Styling who wants Watsonville Apartment",
+      "members": [
+        {
+          "listing_id": "cl-7931226609",
+          "offer_summary": "Skilled Tutor, Cook, Cleaner, Yard Worker, Baker",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Caregiving, cleaning, and yard work"
+        },
+        {
+          "listing_id": "cl-7935947524",
+          "offer_summary": "Apartment for caregiving in Watsonville",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Professional haircut and styling services",
+        "would_accept_from_tail": "Large upstairs apartment in Watsonville in exchange for caregiving/help",
+        "first_member_wants_verbatim": "Professional Haircut and Styling"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-9",
+      "summary": "Tutor & Cook \u2192 2002 Honda Minivan, missing someone with Haircut/Styling who wants Honda Minivan",
+      "members": [
+        {
+          "listing_id": "cl-7931226609",
+          "offer_summary": "Skilled Tutor, Cook, Cleaner, Yard Worker, Baker",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Once per week vegetarian meal preparation, packaging, clean-up, and light house cleaning service"
+        },
+        {
+          "listing_id": "cl-7936229141",
+          "offer_summary": "2002 HONDA MINIVAN 125K MILES (HOME ON WHEELS)",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Professional haircut and hair styling",
+        "would_accept_from_tail": "2002 Honda Odyssey Minivan with 125K miles",
+        "first_member_wants_verbatim": "Professional Haircut and Styling"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-10",
+      "summary": "Crestron Amp \u2192 Stereo Preamp Kit, missing someone with Acoustic Guitar who wants Stereo Preamp Kit",
+      "members": [
+        {
+          "listing_id": "cl-7922569673",
+          "offer_summary": "Crestron 1600w Amp",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Regular amplifier"
+        },
+        {
+          "listing_id": "cl-7934654979",
+          "offer_summary": "Stereo preamp kit",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "A decent acoustic guitar or quality banjo",
+        "would_accept_from_tail": "Unassembled stereo preamp kit",
+        "first_member_wants_verbatim": "decent acoustic guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-11",
+      "summary": "Crestron Amp \u2192 Classical Guitar, missing someone with Acoustic Guitar who wants Classical Guitar",
+      "members": [
+        {
+          "listing_id": "cl-7922569673",
+          "offer_summary": "Crestron 1600w Amp",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Amplifier"
+        },
+        {
+          "listing_id": "cl-7935973078",
+          "offer_summary": "Vintage Japanese classical guitar",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Decent acoustic guitar",
+        "would_accept_from_tail": "Vintage 60s/70s Japanese classical guitar",
+        "first_member_wants_verbatim": "decent acoustic guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-12",
+      "summary": "Roy Smeck Ukulele \u2192 LL Bean Rod/Reel, missing someone with Guitar who wants Fishing Rod/Reel",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "offer_summary": "Vintage Roy Smeck Solid Mahogany Soprano Ukulele",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Ukulele (or Other Stringed Instruments)"
+        },
+        {
+          "listing_id": "cl-7918460337",
+          "offer_summary": "NEW LL BEAN Spinning Rod/Reel Combo",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Acoustic or electric guitar",
+        "would_accept_from_tail": "New LL Bean Spinning Rod/Reel Combo",
+        "first_member_wants_verbatim": "Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-13",
+      "summary": "Roy Smeck Ukulele \u2192 Abu Garcia Reel, missing someone with Guitar who wants Baitcasting Reel",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "offer_summary": "Vintage Roy Smeck Solid Mahogany Soprano Ukulele",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Ukulele"
+        },
+        {
+          "listing_id": "cl-7925613700",
+          "offer_summary": "Abu Garcia Max Bait Casting Reel",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Guitar",
+        "would_accept_from_tail": "Brand new Abu Garcia Max Pro Low Profile Casting Reel",
+        "first_member_wants_verbatim": "Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-14",
+      "summary": "Roy Smeck Ukulele \u2192 Vintage Guitar Case, missing someone with Guitar who wants Vintage Case",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "offer_summary": "Vintage Roy Smeck Solid Mahogany Soprano Ukulele",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Ukulele"
+        },
+        {
+          "listing_id": "cl-7920774813",
+          "offer_summary": "Vintage 50s/60s Guitar Case",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Guitar",
+        "would_accept_from_tail": "Vintage 50s/60s dreadnought-sized acoustic guitar case",
+        "first_member_wants_verbatim": "Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-15",
+      "summary": "Roy Smeck Ukulele \u2192 Vintage Case \u2192 LL Bean Rod/Reel, missing someone with Guitar who wants LL Bean Rod/Reel",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "offer_summary": "Vintage Roy Smeck Solid Mahogany Soprano Ukulele",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Ukulele"
+        },
+        {
+          "listing_id": "cl-7920774813",
+          "offer_summary": "Vintage 50s/60s Guitar Case",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Hardshell Dreadnought Guitar Case"
+        },
+        {
+          "listing_id": "cl-7918460337",
+          "offer_summary": "NEW LL BEAN Spinning Rod/Reel Combo",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Acoustic or electric guitar",
+        "would_accept_from_tail": "New LL Bean Spinning Rod/Reel Combo",
+        "first_member_wants_verbatim": "Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-16",
+      "summary": "Roy Smeck Ukulele \u2192 Fenwick Lunker Stik, missing someone with Guitar who wants Lunker Stik",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "offer_summary": "Vintage Roy Smeck Solid Mahogany Soprano Ukulele",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Stringed Musical Instrument"
+        },
+        {
+          "listing_id": "cl-7918086872",
+          "offer_summary": "Vintage Fenwick LUNKER STIK Rod 1973-74",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Acoustic guitar or mandolin",
+        "would_accept_from_tail": "Vintage Fenwick LUNKER STIK Baitcasting Rod (1973-74)",
+        "first_member_wants_verbatim": "Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-17",
+      "summary": "Roy Smeck Ukulele \u2192 Line 6 Modeling Amp, missing someone with Guitar who wants Line 6 Amp",
+      "members": [
+        {
+          "listing_id": "cl-7917789821",
+          "offer_summary": "Vintage Roy Smeck Solid Mahogany Soprano Ukulele",
+          "edge_quality": "strong",
+          "satisfies_next_want": "stringed musical instrument"
+        },
+        {
+          "listing_id": "cl-7928255310",
+          "offer_summary": "Line 6 AX2 212 100-W Stereo Digital Modeling Guitar Amp",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Guitar",
+        "would_accept_from_tail": "Line 6 AX2 212 100-W Stereo Digital Modeling Guitar Amp",
+        "first_member_wants_verbatim": "Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-18",
+      "summary": "Womens' Gold Seiko Watch \u2192 1990 BMW 525i, missing someone with Mobility Scooter who wants BMW",
+      "members": [
+        {
+          "listing_id": "cl-7912051795",
+          "offer_summary": "Womens' Gold Plated Seiko - Vintage circa 1987",
+          "edge_quality": "strong",
+          "satisfies_next_want": "genuine time pieces"
+        },
+        {
+          "listing_id": "cl-7921112245",
+          "offer_summary": "1990 BMW 525i 5 Speed",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Good electric mobility scooter",
+        "would_accept_from_tail": "1990 BMW 525i 5 Speed (runs, drives, stops)",
+        "first_member_wants_verbatim": "good electric mobility scooter"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-19",
+      "summary": "Mobility Scooter \u2192 Gold Plated Seiko, missing someone with Ebike who wants Seiko Watch",
+      "members": [
+        {
+          "listing_id": "cl-7932137497",
+          "offer_summary": "Mobility scooter with new batteries",
+          "edge_quality": "strong",
+          "satisfies_next_want": "good electric mobility scooter"
+        },
+        {
+          "listing_id": "cl-7912051795",
+          "offer_summary": "Womens' Gold Plated Seiko - Vintage circa 1987",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Electric bike / Ebike",
+        "would_accept_from_tail": "Womens' Gold Plated Seiko Vintage 1987 Quartz Watch",
+        "first_member_wants_verbatim": "Ebike"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-20",
+      "summary": "Mobility Scooter \u2192 Mopar 426 Crankshaft, missing someone with Ebike who wants Mopar Crankshaft",
+      "members": [
+        {
+          "listing_id": "cl-7932137497",
+          "offer_summary": "Mobility scooter with new batteries",
+          "edge_quality": "strong",
+          "satisfies_next_want": "electric mobility scooter/wheelchair"
+        },
+        {
+          "listing_id": "cl-7909803348",
+          "offer_summary": "Mopar 426 Street Wedge crankshaft",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Electric bicycle / Ebike",
+        "would_accept_from_tail": "Forged Mopar 426 Street Wedge crankshaft",
+        "first_member_wants_verbatim": "Ebike"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-21",
+      "summary": "Mobility Scooter \u2192 Gold Plated Seiko \u2192 1990 BMW 525i, missing someone with Ebike who wants BMW 525i",
+      "members": [
+        {
+          "listing_id": "cl-7932137497",
+          "offer_summary": "Mobility scooter with new batteries",
+          "edge_quality": "strong",
+          "satisfies_next_want": "good electric mobility scooter"
+        },
+        {
+          "listing_id": "cl-7912051795",
+          "offer_summary": "Womens' Gold Plated Seiko - Vintage circa 1987",
+          "edge_quality": "strong",
+          "satisfies_next_want": "genuine time pieces"
+        },
+        {
+          "listing_id": "cl-7921112245",
+          "offer_summary": "1990 BMW 525i 5 Speed",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Electric bicycle (Ebike)",
+        "would_accept_from_tail": "1990 BMW 525i 5 Speed",
+        "first_member_wants_verbatim": "Ebike"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-22",
+      "summary": "Warriors Cards \u2192 Michael Jordan Cards, missing someone with Gold/Silver who wants Jordan Cards",
+      "members": [
+        {
+          "listing_id": "cl-7911558620",
+          "offer_summary": "Warriors Cards",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Warriors Cards"
+        },
+        {
+          "listing_id": "cl-7917843817",
+          "offer_summary": "Michael Jordan Cards !!!!!",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Gold/Silver bullion or precious metal coins",
+        "would_accept_from_tail": "Michael Jordan Cards Collection",
+        "first_member_wants_verbatim": "Gold/Silver bullion"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-23",
+      "summary": "Meta Quest 2 \u2192 Fire Stick Streaming, missing someone with Trade Items who wants Fire Stick",
+      "members": [
+        {
+          "listing_id": "cl-7927383648",
+          "offer_summary": "Meta Quest 2 with 50 games/3D movies /Adult VR",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Meta Quest VR headset"
+        },
+        {
+          "listing_id": "cl-7927383275",
+          "offer_summary": "FIRE STICK: Everything Free/Live sports/Live Local & Worldwide tv FREE",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "General trade items",
+        "would_accept_from_tail": "Pre-configured streaming Fire Stick",
+        "first_member_wants_verbatim": "Offers [catch-all]"
+      },
+      "chain_quality": "moderate"
+    },
+    {
+      "id": "chain-24",
+      "summary": "Electrical/Welding/Metal Fab \u2192 Dental Services, missing someone with RV Parking who wants Dental Services",
+      "members": [
+        {
+          "listing_id": "cl-7917341155",
+          "offer_summary": "Electrical work, metal fabrication, welding, and mechanical repair services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Metal working services"
+        },
+        {
+          "listing_id": "cl-7904788285",
+          "offer_summary": "Dental Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "RV parking space",
+        "would_accept_from_tail": "Dental services in exchange",
+        "first_member_wants_verbatim": "RV parking space"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-25",
+      "summary": "Electrical/Welding \u2192 Dental Services \u2192 Roofing Services, missing someone with RV Parking who wants Roofing Services",
+      "members": [
+        {
+          "listing_id": "cl-7917341155",
+          "offer_summary": "Electrical work, metal fabrication, welding, and mechanical repair services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Metal working services"
+        },
+        {
+          "listing_id": "cl-7904788285",
+          "offer_summary": "Dental Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "dental services"
+        },
+        {
+          "listing_id": "cl-7912863306",
+          "offer_summary": "Roofing Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "RV parking space",
+        "would_accept_from_tail": "Professional roofing services",
+        "first_member_wants_verbatim": "RV parking space"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-26",
+      "summary": "Electrical/Welding \u2192 Dental Services \u2192 Mercedes Mechanic, missing someone with RV Parking who wants Mercedes Mechanic",
+      "members": [
+        {
+          "listing_id": "cl-7917341155",
+          "offer_summary": "Electrical work, metal fabrication, welding, and mechanical repair services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Metal working services"
+        },
+        {
+          "listing_id": "cl-7904788285",
+          "offer_summary": "Dental Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "dental services"
+        },
+        {
+          "listing_id": "cl-7904793696",
+          "offer_summary": "Mercedes mechanic barter with dentist",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "RV parking space",
+        "would_accept_from_tail": "Mercedes automotive repair services",
+        "first_member_wants_verbatim": "RV parking space"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-27",
+      "summary": "Model A Shay Roadster \u2192 Honda CL350 Scrambler, missing someone with VW Vanagon who wants Honda CL350",
+      "members": [
+        {
+          "listing_id": "cl-7925956126",
+          "offer_summary": "1930 Model A Shay Rumbler Seat Roadster",
+          "edge_quality": "strong",
+          "satisfies_next_want": "BSA, Triumph, Whizzer, Cushman, Lambretta, Doodlebug, Shay, Ural, Royal Enfield, Moto Guzzi, Sportster, Puch, Vespa, Honda trail bike, Allstate, Avanti motorbike"
+        },
+        {
+          "listing_id": "cl-7933108826",
+          "offer_summary": "1973 Honda CL350 Scrambler project bike",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "VW Vanagon bus camper",
+        "would_accept_from_tail": "1973 Honda CL350 Scrambler project bike",
+        "first_member_wants_verbatim": "VW VAN BUS CAMPER vanagon"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-28",
+      "summary": "Ford Model A Shay Roadster \u2192 Honda CL350 Scrambler, missing someone with Camper Van who wants Honda CL350",
+      "members": [
+        {
+          "listing_id": "cl-7935827801",
+          "offer_summary": "1930 Ford Model A Shay Rumble Seat Roaster",
+          "edge_quality": "strong",
+          "satisfies_next_want": "BSA, Triumph, Whizzer, Cushman, Lambretta, Doodlebug, Shay, Ural, Royal Enfield, Moto Guzzi, Sportster, Puch, Vespa, Honda trail bike, Allstate, Avanti motorbike"
+        },
+        {
+          "listing_id": "cl-7933108826",
+          "offer_summary": "1973 Honda CL350 Scrambler project bike",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Camper van",
+        "would_accept_from_tail": "1973 Honda CL350 Scrambler project bike",
+        "first_member_wants_verbatim": "Camper van (true valued $5,000+)"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-29",
+      "summary": "1989 Dodge Caravan \u2192 Honda CL350 Scrambler, missing someone with Ford Mustang who wants Honda CL350",
+      "members": [
+        {
+          "listing_id": "cl-7905612848",
+          "offer_summary": "1989 Dodge 2.5L Turbo SWB short wheelbase Caravan",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Dodge, Ford, Chevy, GMC van"
+        },
+        {
+          "listing_id": "cl-7933108826",
+          "offer_summary": "1973 Honda CL350 Scrambler project bike",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "1965-1968 Ford Mustang",
+        "would_accept_from_tail": "1973 Honda CL350 Scrambler project bike",
+        "first_member_wants_verbatim": "1965-1968 Ford Mustang"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-30",
+      "summary": "Electrician \u2192 DIY Car Ports, missing someone with Anything of Value who wants DIY Car Port",
+      "members": [
+        {
+          "listing_id": "cl-7918008753",
+          "offer_summary": "Electrical work for trade Electrician",
+          "edge_quality": "strong",
+          "satisfies_next_want": "electrical work for 3 separate garages"
+        },
+        {
+          "listing_id": "cl-7901357186",
+          "offer_summary": "New DIY Car Ports Two Car garage in Box 23X23x11 feet high",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Any item of equivalent trade value",
+        "would_accept_from_tail": "New DIY Car Port Two Car garage kit in box",
+        "first_member_wants_verbatim": "Trade for anything of value [catch-all]"
+      },
+      "chain_quality": "moderate"
+    },
+    {
+      "id": "chain-31",
+      "summary": "Electrical/Welding \u2192 DIY Car Ports, missing someone with RV Parking who wants DIY Car Port",
+      "members": [
+        {
+          "listing_id": "cl-7917341155",
+          "offer_summary": "Electrical work, metal fabrication, welding, and mechanical repair services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "electrical work for 3 separate garages"
+        },
+        {
+          "listing_id": "cl-7901357186",
+          "offer_summary": "New DIY Car Ports Two Car garage in Box 23X23x11 feet high",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "RV parking space",
+        "would_accept_from_tail": "New DIY Car Port Two Car garage kit in box",
+        "first_member_wants_verbatim": "RV parking space"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-32",
+      "summary": "Concrete Construction \u2192 Cabin Cruiser Boat, missing someone with Motorcycle who wants Cabin Cruiser",
+      "members": [
+        {
+          "listing_id": "cl-7916559079",
+          "offer_summary": "All concrete finishes,all concrete construction",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Concrete work"
+        },
+        {
+          "listing_id": "cl-7930601852",
+          "offer_summary": "1981 Christ Craft Cabin Cruiser Boat",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Motorcycle or pickup truck",
+        "would_accept_from_tail": "1981 28ft Christ Craft Cabin Cruiser Boat",
+        "first_member_wants_verbatim": "Motorcycles"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-33",
+      "summary": "Concrete Construction \u2192 Cabin Cruiser Boat, missing someone with Car who wants Cabin Cruiser",
+      "members": [
+        {
+          "listing_id": "cl-7929310656",
+          "offer_summary": "Professional Concrete Construction",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Concrete work"
+        },
+        {
+          "listing_id": "cl-7930601852",
+          "offer_summary": "1981 Christ Craft Cabin Cruiser Boat",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Car, truck, or RV",
+        "would_accept_from_tail": "1981 28ft Christ Craft Cabin Cruiser Boat",
+        "first_member_wants_verbatim": "Cars"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-34",
+      "summary": "Concrete Services \u2192 Cabin Cruiser Boat, missing someone with Car who wants Cabin Cruiser",
+      "members": [
+        {
+          "listing_id": "cl-7924013419",
+          "offer_summary": "Professional Concrete Construction Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Concrete work"
+        },
+        {
+          "listing_id": "cl-7930601852",
+          "offer_summary": "1981 Christ Craft Cabin Cruiser Boat",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Car or truck",
+        "would_accept_from_tail": "1981 28ft Christ Craft Cabin Cruiser Boat",
+        "first_member_wants_verbatim": "Car"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-35",
+      "summary": "Home Repair Services \u2192 Cabin Cruiser Boat, missing someone with Martin Guitar who wants Cabin Cruiser",
+      "members": [
+        {
+          "listing_id": "cl-7926997243",
+          "offer_summary": "Bartering Home Repair or Remodel",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Home repairs"
+        },
+        {
+          "listing_id": "cl-7930601852",
+          "offer_summary": "1981 Christ Craft Cabin Cruiser Boat",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Martin Guitar",
+        "would_accept_from_tail": "1981 28ft Christ Craft Cabin Cruiser Boat",
+        "first_member_wants_verbatim": "Martin Guitar"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-36",
+      "summary": "Electrical/Mechanical Repair \u2192 Cabin Cruiser Boat, missing someone with RV Parking who wants Cabin Cruiser",
+      "members": [
+        {
+          "listing_id": "cl-7917341155",
+          "offer_summary": "Electrical work, metal fabrication, welding, and mechanical repair services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Mechanical work"
+        },
+        {
+          "listing_id": "cl-7930601852",
+          "offer_summary": "1981 Christ Craft Cabin Cruiser Boat",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "RV parking space",
+        "would_accept_from_tail": "1981 28ft Christ Craft Cabin Cruiser Boat",
+        "first_member_wants_verbatim": "RV parking space"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-37",
+      "summary": "Marketing/Web Design \u2192 Hypnotherapy Services, missing someone with Room/Storage who wants Hypnotherapy",
+      "members": [
+        {
+          "listing_id": "cl-7933445089",
+          "offer_summary": "Custom Signage, Marketing, Video Production & Web Design Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Website Professional Services"
+        },
+        {
+          "listing_id": "cl-7928699232",
+          "offer_summary": "Advanced NLP & Hypnotherapy Services",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Small room, closet access, or storage space",
+        "would_accept_from_tail": "Advanced NLP & Hypnotherapy Services",
+        "first_member_wants_verbatim": "Small room, closet access, or storage space"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-38",
+      "summary": "Peet's Coffee Keurigs \u2192 Gel Back Pack, missing someone with Command Hooks who wants Gel Back Pack",
+      "members": [
+        {
+          "listing_id": "cl-7915376837",
+          "offer_summary": "A Dozen Peet's Coffee Keurigs Cafe Domingo Medium Roast Coffee",
+          "edge_quality": "strong",
+          "satisfies_next_want": "several pounds of good coffee"
+        },
+        {
+          "listing_id": "cl-7914372274",
+          "offer_summary": "The Wonder Pax-Cool/Warm Gel Pack for Back New in Box!",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Command hooks or S-hooks",
+        "would_accept_from_tail": "Wonder Pax-Cool/Warm Gel Pack for Back (New in Box)",
+        "first_member_wants_verbatim": "Command hooks"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-39",
+      "summary": "Wool Sweaters \u2192 Peet's Coffee \u2192 Gel Back Pack, missing someone with Bug Tent who wants Gel Back Pack",
+      "members": [
+        {
+          "listing_id": "cl-7913106498",
+          "offer_summary": "Various Items for Trade (wool sweaters for felting)",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Wool sweaters for felting"
+        },
+        {
+          "listing_id": "cl-7915376837",
+          "offer_summary": "A Dozen Peet's Coffee Keurigs Cafe Domingo Medium Roast Coffee",
+          "edge_quality": "strong",
+          "satisfies_next_want": "several pounds of good coffee"
+        },
+        {
+          "listing_id": "cl-7914372274",
+          "offer_summary": "The Wonder Pax-Cool/Warm Gel Pack for Back New in Box!",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Bug Tent or Tent Made out of Net",
+        "would_accept_from_tail": "The Wonder Pax-Cool/Warm Gel Pack for Back",
+        "first_member_wants_verbatim": "Bug Tent or Tent Made out of Net"
+      },
+      "chain_quality": "strong"
+    },
+    {
+      "id": "chain-40",
+      "summary": "Wool Sweaters \u2192 Peet's Coffee, missing someone with Bug Tent who wants Peet's Coffee",
+      "members": [
+        {
+          "listing_id": "cl-7913106498",
+          "offer_summary": "Various Items for Trade (wool sweaters for felting)",
+          "edge_quality": "strong",
+          "satisfies_next_want": "Wool sweaters for felting"
+        },
+        {
+          "listing_id": "cl-7915376837",
+          "offer_summary": "A Dozen Peet's Coffee Keurigs Cafe Domingo Medium Roast Coffee",
+          "edge_quality": "strong",
+          "satisfies_next_want": ""
+        }
+      ],
+      "missing_slot": {
+        "would_offer_like": "Bug Tent or Tent Made out of Net",
+        "would_accept_from_tail": "A dozen units of Peet's Coffee Keurig pods",
+        "first_member_wants_verbatim": "Bug Tent or Tent Made out of Net"
+      },
+      "chain_quality": "strong"
+    }
+  ]
+}
