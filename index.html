@@ -237,6 +237,76 @@
 
   hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
 
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 9px 16px; background: transparent; border: none; cursor: pointer; font: inherit; font-size: 13.5px;
+    color: var(--text-3); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab .badge {
+    margin-left: 6px; font-size: 11px; padding: 1px 7px; border-radius: 999px;
+    background: var(--bg-mute); color: var(--text-3); font-weight: 500;
+  }
+  .tab.active .badge { background: var(--accent); color: white; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: panelIn 0.2s ease-out; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* Open chains list */
+  .chain-card {
+    border: 1px solid var(--border); border-radius: 8px; background: white; margin-bottom: 14px; overflow: hidden;
+  }
+  .chain-card-head {
+    padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  }
+  .chain-card-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-3); }
+  .chain-card-summary { flex: 1; font-size: 13.5px; line-height: 1.5; }
+  .chain-card-summary b { font-weight: 600; }
+  .chain-card-row {
+    display: grid; grid-template-columns: 56px 1fr; gap: 12px; padding: 12px 16px;
+    border-bottom: 1px dashed var(--border); align-items: start;
+  }
+  .chain-card-row:last-of-type { border-bottom: none; }
+  .chain-card-row .thumb {
+    width: 56px; height: 56px; border-radius: 6px; overflow: hidden;
+    background: var(--bg-mute); display: flex; align-items: center; justify-content: center;
+  }
+  .chain-card-row .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .chain-card-row .thumb .no-img { font-size: 9px; color: var(--text-3); }
+  .chain-card-row .who { font-weight: 600; font-size: 13px; }
+  .chain-card-row .loc { color: var(--text-3); font-size: 11.5px; margin-bottom: 3px; }
+  .chain-card-row .offer { font-size: 12.5px; color: var(--text-2); line-height: 1.45; }
+  .chain-card-row .satisfies { font-size: 11.5px; color: var(--text-3); font-style: italic; margin-top: 2px; }
+  .chain-card-row .satisfies em { color: var(--moderate); font-style: normal; }
+  .chain-needs {
+    padding: 14px 16px; background: #fefce8; border-top: 2px solid #fde68a;
+  }
+  .chain-needs h4 {
+    margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--moderate); font-weight: 600;
+  }
+  .chain-needs .needs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 13px; }
+  @media (max-width: 700px) { .chain-needs .needs-grid { grid-template-columns: 1fr; } }
+  .chain-needs .needs-grid > div { line-height: 1.5; }
+  .chain-needs .label {
+    display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-3); font-weight: 600; margin-bottom: 2px;
+  }
+  .chain-needs .val { color: var(--text); font-weight: 500; }
+
+  /* Contact button */
+  .btn.contact {
+    background: white; color: var(--text); border: 1px solid var(--border-strong); padding: 4px 10px;
+    border-radius: 5px; font-size: 11.5px; font-weight: 500; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .btn.contact:hover { background: var(--bg-mute); border-color: var(--text); text-decoration: none; }
+  .btn.contact-prominent {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  .btn.contact-prominent:hover { opacity: 0.85; background: var(--accent); color: white; }
+
   /* New: trade flow */
   .trade-flow { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; margin-bottom: 24px; }
   @media (max-width: 800px) { .trade-flow { grid-template-columns: 1fr; } }
@@ -340,6 +410,13 @@
 
 <div class="stats" id="stats"></div>
 
+<div class="tabs">
+  <button class="tab active" data-tab="trade">Trade something</button>
+  <button class="tab" data-tab="chains">Open chains <span class="badge" id="chains-count">…</span></button>
+  <button class="tab" data-tab="listings">All listings <span class="badge" id="listings-tab-count">…</span></button>
+</div>
+
+<div class="tab-panel active" id="panel-trade">
 <div class="section">
   <div class="section-head">
     <h2>Trade something</h2>
@@ -393,25 +470,36 @@
   </div>
   <div id="rings"></div>
 </div>
+</div><!-- end panel-trade -->
 
-<hr class="divider">
+<div class="tab-panel" id="panel-chains">
+  <div class="section">
+    <div class="section-head">
+      <h2>Open chains</h2>
+      <span class="desc">Partial trade chains waiting for one more participant. If you have what the missing slot needs, you can close the ring.</span>
+    </div>
+    <div id="chains-list"></div>
+  </div>
+</div><!-- end panel-chains -->
 
-<div class="section">
-  <div class="section-head">
-    <h2>All listings</h2>
-    <span class="desc" id="listings-count">…</span>
+<div class="tab-panel" id="panel-listings">
+  <div class="section">
+    <div class="section-head">
+      <h2>All listings</h2>
+      <span class="desc" id="listings-count">…</span>
+    </div>
+    <div class="filters">
+      <input id="search" placeholder="search by item, story, location…">
+      <span class="chip active" data-cat="all">all</span>
+      <span class="chip" data-cat="vehicle">vehicles</span>
+      <span class="chip" data-cat="music">music</span>
+      <span class="chip" data-cat="services">services</span>
+      <span class="chip" data-cat="computing">computing</span>
+      <span class="chip" data-cat="collectibles">collectibles</span>
+    </div>
+    <div class="grid" id="grid"></div>
   </div>
-  <div class="filters">
-    <input id="search" placeholder="search by item, story, location…">
-    <span class="chip active" data-cat="all">all</span>
-    <span class="chip" data-cat="vehicle">vehicles</span>
-    <span class="chip" data-cat="music">music</span>
-    <span class="chip" data-cat="services">services</span>
-    <span class="chip" data-cat="computing">computing</span>
-    <span class="chip" data-cat="collectibles">collectibles</span>
-  </div>
-  <div class="grid" id="grid"></div>
-</div>
+</div><!-- end panel-listings -->
 
 <script src="config.local.js"></script>
 <script>
@@ -431,16 +519,97 @@ const STREAM_URL = `${GEMINI_BASE}/models/${MODEL}:streamGenerateContent?alt=sse
 const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let LISTINGS = [];
 let LISTINGS_BY_ID = {};
+let OPEN_CHAINS = [];  // from chains_cache.json
 let filter = { q: '', cat: 'all' };
 
 (async () => {
-  LISTINGS = await (await fetch('seed.json')).json();
+  const [seedRes, chainsRes] = await Promise.all([
+    fetch('seed.json'),
+    fetch('chains_cache.json'),
+  ]);
+  LISTINGS = await seedRes.json();
   LISTINGS_BY_ID = Object.fromEntries(LISTINGS.map(l => [l.id, l]));
-  document.getElementById('dataset-meta').textContent = `${LISTINGS.length} listings · source: Craigslist SF Bay /bar`;
+  try {
+    const chainsData = await chainsRes.json();
+    OPEN_CHAINS = chainsData.open_chains || [];
+  } catch(_) { OPEN_CHAINS = []; }
+  document.getElementById('dataset-meta').textContent = `${LISTINGS.length} listings · ${OPEN_CHAINS.length} open chains · Craigslist SF Bay /bar`;
   document.getElementById('listings-count').textContent = `${LISTINGS.length} active`;
+  document.getElementById('chains-count').textContent = OPEN_CHAINS.length;
+  document.getElementById('listings-tab-count').textContent = LISTINGS.length;
   renderStats();
   renderGrid();
+  renderChains();
 })();
+
+// ---- Tabs ----
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+});
+
+// ---- Open chains rendering ----
+function renderChains() {
+  const list = document.getElementById('chains-list');
+  if (!OPEN_CHAINS.length) {
+    list.innerHTML = '<div class="empty">No open chains in cache.</div>';
+    return;
+  }
+  list.innerHTML = OPEN_CHAINS.map(chain => {
+    const rowsHtml = chain.members.map((m, k) => {
+      const l = LISTINGS_BY_ID[m.listing_id] || { user: '?', location: '', has: { title: m.offer_summary || '?' } };
+      const thumb = (l.images && l.images[0])
+        ? `<div class="thumb"><img src="${escapeHtml(l.images[0])}" loading="lazy"></div>`
+        : `<div class="thumb"><span class="no-img">no img</span></div>`;
+      const sat = m.satisfies_next_want
+        ? `<div class="satisfies">→ satisfies <em>"${escapeHtml(m.satisfies_next_want)}"</em></div>`
+        : '';
+      const contactBtn = l.url
+        ? `<a class="btn contact" href="${escapeHtml(l.url)}" target="_blank" rel="noopener">Reply on Craigslist ↗</a>`
+        : '';
+      return `
+        <div class="chain-card-row">
+          ${thumb}
+          <div>
+            <div class="who">${escapeHtml(l.user)}${l.location ? ` <span class="loc">· ${escapeHtml(l.location)}</span>` : ''}</div>
+            <div class="offer">${escapeHtml(l.has.title)}</div>
+            ${sat}
+            <div style="margin-top:6px;">${contactBtn}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    const qclass = chain.chain_quality || '';
+    return `
+      <div class="chain-card">
+        <div class="chain-card-head">
+          <span class="chain-card-id">${escapeHtml(chain.id)}</span>
+          <span class="chain-card-summary">${escapeHtml(chain.summary)}</span>
+          <span class="quality-badge ${qclass}">${escapeHtml(qclass)}</span>
+        </div>
+        ${rowsHtml}
+        <div class="chain-needs">
+          <h4>Could close if someone walks in with…</h4>
+          <div class="needs-grid">
+            <div>
+              <span class="label">offers something like</span>
+              <span class="val">${escapeHtml(chain.missing_slot.would_offer_like)}</span>
+            </div>
+            <div>
+              <span class="label">and would accept</span>
+              <span class="val">${escapeHtml(chain.missing_slot.would_accept_from_tail)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
 function renderStats() {
   const cats = {};
@@ -500,6 +669,7 @@ function listingCard(l) {
             </div>
           `).join('')}
         </div>
+        ${l.url ? `<div style="margin-top:10px;"><a class="btn contact contact-prominent" href="${escapeHtml(l.url)}" target="_blank" rel="noopener">Reply on Craigslist ↗</a></div>` : ''}
       </div>
     </div>
   `;
@@ -606,6 +776,15 @@ QUALITY:
 OUTPUT:
 - For each member, satisfies_my_want = their own want being fulfilled, why_fits = why the previous member's offer fits it.
 - Order rings strongest first. Prefer rings where the user ("you") ends up with something matching their FIRST want.
+
+HINTS (optional — pre-computed open chains in the pool, each missing one slot to close into a ring):
+You don't have to use these. But if the user's listing fits one of these missing slots, closing that chain is often the highest-quality ring available. Each hint shows the existing chain members and what kind of participant would complete it.
+${JSON.stringify(OPEN_CHAINS.slice(0, 25).map(c => ({
+  id: c.id,
+  summary: c.summary,
+  member_ids: c.members.map(m => m.listing_id),
+  needs: c.missing_slot
+})))}
 
 LISTINGS (${compact.length} — "you" first):
 ${JSON.stringify(compact)}`;
@@ -744,7 +923,7 @@ function renderRings(rings) {
             <div class="step-thumb">${(l.images && l.images[0]) ? `<img src="${escapeHtml(l.images[0])}" loading="lazy" alt="">` : '<span class="no-img">no image</span>'}</div>
             <div class="step-user">${escapeHtml(l.user)}</div>
             <div class="step-loc">${escapeHtml(l.location)}</div>
-            <div class="step-link">${l.url ? `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">view on craigslist ↗</a>` : ''}</div>
+            <div class="step-link" style="margin-top:6px;">${l.url ? `<a class="btn contact" href="${escapeHtml(l.url)}" target="_blank" rel="noopener">Reply ↗</a>` : ''}</div>
           </div>
           <div class="step-main">
             <div class="step-row">
