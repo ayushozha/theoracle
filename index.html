@@ -580,7 +580,16 @@ function renderChains() {
     list.innerHTML = '<div class="empty">No open chains in cache.</div>';
     return;
   }
-  list.innerHTML = OPEN_CHAINS.map(chain => {
+  // Sort: chains where more members have images come first
+  const chainsSorted = OPEN_CHAINS.slice().sort((a, b) => {
+    const aImgs = a.members.reduce((n, m) => n + ((LISTINGS_BY_ID[m.listing_id]?.images?.length || 0) > 0 ? 1 : 0), 0);
+    const bImgs = b.members.reduce((n, m) => n + ((LISTINGS_BY_ID[m.listing_id]?.images?.length || 0) > 0 ? 1 : 0), 0);
+    if (bImgs !== aImgs) return bImgs - aImgs;
+    // tiebreak: strong > moderate > stretch
+    const rank = q => q === 'strong' ? 0 : q === 'moderate' ? 1 : 2;
+    return rank(a.chain_quality) - rank(b.chain_quality);
+  });
+  list.innerHTML = chainsSorted.map(chain => {
     const rowsHtml = chain.members.map((m, k) => {
       const l = LISTINGS_BY_ID[m.listing_id] || { user: '?', location: '', has: { title: m.offer_summary || '?' } };
       const thumb = (l.images && l.images[0])
@@ -664,7 +673,11 @@ function renderStats() {
 
 function renderGrid() {
   const q = filter.q.toLowerCase();
-  const filtered = LISTINGS.filter(l => {
+  const filtered = LISTINGS.slice().sort((a, b) => {
+    const ai = (a.images && a.images.length) ? 1 : 0;
+    const bi = (b.images && b.images.length) ? 1 : 0;
+    return bi - ai;  // images first
+  }).filter(l => {
     if (filter.cat !== 'all') {
       const c = l.has.category.toLowerCase();
       if (!c.includes(filter.cat)) return false;
