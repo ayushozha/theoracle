@@ -100,6 +100,8 @@ export default function VoiceAgentControl({
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playbackUrlRef = useRef<string | null>(null);
+  const playbackRequestRef = useRef(0);
   const assistantTranscriptRef = useRef('');
   const assistantModeRef = useRef<'audio' | 'text' | null>(null);
   const completedInputItemsRef = useRef<Set<string>>(new Set());
@@ -119,7 +121,93 @@ export default function VoiceAgentControl({
     [onError],
   );
 
+  const stopPlayback = useCallback(() => {
+    playbackRequestRef.current += 1;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.srcObject = null;
+      audioRef.current.load();
+    }
+    if (playbackUrlRef.current) {
+      URL.revokeObjectURL(playbackUrlRef.current);
+      playbackUrlRef.current = null;
+    }
+  }, []);
+
+  const playSpeechBlob = useCallback(
+    (blob: Blob, requestId: number) =>
+      new Promise<void>((resolve, reject) => {
+        if (requestId !== playbackRequestRef.current) {
+          resolve();
+          return;
+        }
+
+        if (playbackUrlRef.current) {
+          URL.revokeObjectURL(playbackUrlRef.current);
+          playbackUrlRef.current = null;
+        }
+
+        const audio = audioRef.current ?? new Audio();
+        audio.autoplay = true;
+        audio.setAttribute('playsinline', 'true');
+        audioRef.current = audio;
+
+        const url = URL.createObjectURL(blob);
+        playbackUrlRef.current = url;
+        audio.srcObject = null;
+        audio.src = url;
+
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error('Voice playback failed.'));
+        void audio.play().catch(reject);
+      }),
+    [],
+  );
+
+  const fetchSpeech = useCallback(async (endpoint: string, text: string) => {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    if (!response.ok) throw new Error('Voice synthesis failed.');
+    return response.blob();
+  }, []);
+
+  const speakAssistantText = useCallback(
+    async (text: string) => {
+      const cleanText = text.trim();
+      if (!cleanText) return;
+
+      const requestId = playbackRequestRef.current + 1;
+      playbackRequestRef.current = requestId;
+      setPhase('speaking');
+
+      try {
+        const primary = await fetchSpeech('/api/elevenlabs/tts', cleanText);
+        await playSpeechBlob(primary, requestId);
+      } catch {
+        try {
+          const fallback = await fetchSpeech('/api/openai/tts', cleanText);
+          await playSpeechBlob(fallback, requestId);
+        } catch {
+          if (requestId === playbackRequestRef.current) {
+            reportError('Could not play the voice response.');
+          }
+        }
+      } finally {
+        if (requestId === playbackRequestRef.current) {
+          setPhase('listening');
+        }
+      }
+    },
+    [fetchSpeech, playSpeechBlob, reportError],
+  );
+
   const stopVoice = useCallback(() => {
+    stopPlayback();
+
     dataChannelRef.current?.close();
     dataChannelRef.current = null;
 
@@ -142,7 +230,7 @@ export default function VoiceAgentControl({
     completedResponsesRef.current.clear();
     setEnabled(false);
     setPhase('idle');
-  }, []);
+  }, [stopPlayback]);
 
   const handleRealtimeEvent = useCallback(
     (event: RealtimeServerEvent) => {
@@ -195,7 +283,9 @@ export default function VoiceAgentControl({
           if (event.response_id && completedResponsesRef.current.has(event.response_id)) break;
           const finalText = event.text || assistantTranscriptRef.current;
           if (finalText.trim()) {
-            onAssistantDone(finalText.trim());
+            const cleanFinalText = finalText.trim();
+            onAssistantDone(cleanFinalText);
+            void speakAssistantText(cleanFinalText);
           }
           assistantTranscriptRef.current = '';
           assistantModeRef.current = null;
@@ -213,7 +303,7 @@ export default function VoiceAgentControl({
           break;
       }
     },
-    [onAssistantDelta, onAssistantDone, onUserTranscript, reportError],
+    [onAssistantDelta, onAssistantDone, onUserTranscript, reportError, speakAssistantText],
   );
 
   const startVoice = useCallback(async () => {
@@ -239,7 +329,7 @@ export default function VoiceAgentControl({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ instructions: sessionInstructions }),
+        body: JSON.stringify({ instructions: sessionInstructions, outputMode: 'text' }),
       });
 
       const tokenData = (await tokenResponse.json()) as ClientSecretResponse;

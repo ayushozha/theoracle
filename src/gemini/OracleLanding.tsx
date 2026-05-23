@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Plus,
   ChevronDown,
@@ -18,6 +18,14 @@ import { CONCIERGE_SYSTEM_PROMPT } from './agentPersona';
 import CameraCapture from './CameraCapture';
 import VoiceAgentControl from './VoiceAgentControl';
 import { buildUserParts, canPreviewImage } from './chatFlow';
+import {
+  createEmptyItemIntakeProfile,
+  extractItemIntakeProfile,
+  hasUsefulIntake,
+  profileDisplayFields,
+  type ItemIntakeProfile,
+} from './intakeProfile';
+import { buildResearchTask, generateMarketStrategy } from './marketStrategy';
 import BrowserViewport from '../browser/BrowserViewport';
 import BrowserViewportModal from '../browser/BrowserViewportModal';
 import { streamBrowserResearch } from '../browser/browserClient';
@@ -78,12 +86,17 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedBrowserId, setExpandedBrowserId] = useState<string | null>(null);
+  const [intakeProfile, setIntakeProfile] = useState<ItemIntakeProfile>(() =>
+    createEmptyItemIntakeProfile(),
+  );
+  const [isExtractingProfile, setIsExtractingProfile] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const voiceModelIdRef = useRef<string | null>(null);
+  const intakeProfileRef = useRef(intakeProfile);
 
   const hasMessages = messages.length > 0;
 
@@ -92,6 +105,10 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    intakeProfileRef.current = intakeProfile;
+  }, [intakeProfile]);
 
   const buildHistory = useMemo(
     () =>
@@ -114,6 +131,35 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
         .slice(-8)
         .map((m) => `${m.role === 'user' ? 'User' : 'Oracle'}: ${m.text}`)
         .join('\n'),
+    [messages],
+  );
+
+  const updateIntakeProfile = useCallback(
+    async (userText: string, files: Attachment[] = []) => {
+      if (!userText.trim() && files.length === 0) return intakeProfileRef.current;
+
+      setIsExtractingProfile(true);
+      try {
+        const recentContext = messages
+          .filter((m) => !m.streaming && m.text.trim().length > 0)
+          .slice(-6)
+          .map((m) => `${m.role === 'user' ? 'User' : 'Oracle'}: ${m.text}`)
+          .join('\n');
+        const next = await extractItemIntakeProfile({
+          userText,
+          files,
+          previousProfile: intakeProfileRef.current,
+          recentContext,
+        });
+        intakeProfileRef.current = next;
+        setIntakeProfile(next);
+        return next;
+      } catch {
+        return intakeProfileRef.current;
+      } finally {
+        setIsExtractingProfile(false);
+      }
+    },
     [messages],
   );
 
@@ -154,6 +200,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
     const sentAttachments = activeAttachments;
     if (overrideAttachments === undefined) setAttachments([]);
     setIsStreaming(true);
+    const intakePromise = updateIntakeProfile(text, sentAttachments);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -164,11 +211,10 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
 
     try {
       if (useBrowser) {
-        const taskPrompt = text.replace(/^\/research\s*/i, '').trim();
+        const profileForResearch = await intakePromise;
+        const taskPrompt = buildResearchTask(text, profileForResearch);
         for await (const frame of streamBrowserResearch({
-          task:
-            taskPrompt ||
-            'Research where to sell my MacBook Pro M3 Pro (18GB / 512GB, Good/Mint, charger included) to clear above $725 with local Ferry Building pickup.',
+          task: taskPrompt,
           signal: controller.signal,
         })) {
           patchMessage((m) => ({
@@ -186,6 +232,21 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
           }));
           if (frame.type === 'done') reply = frame.report || 'Research complete.';
           else if (frame.type === 'error') reply = `Browser-use error: ${frame.message}`;
+        }
+
+        if (reply.trim() && !reply.startsWith('Browser-use error:')) {
+          patchMessage((m) => ({
+            ...m,
+            text: `${reply}\n\nDrafting pricing strategy, listing, and ad brief...`,
+          }));
+          const strategy = await generateMarketStrategy({
+            userRequest: text,
+            profile: intakeProfileRef.current,
+            researchReport: reply,
+            signal: controller.signal,
+          });
+          reply = `${reply}\n\n${strategy}`;
+          patchMessage((m) => ({ ...m, text: reply }));
         }
       } else {
         const contents = await buildHistory(text, sentAttachments);
@@ -225,6 +286,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   const addVoiceUserTranscript = (text: string) => {
     setError(null);
     setMessages((prev) => [...prev, { id: newId(), role: 'user', text }]);
+    void updateIntakeProfile(text);
   };
 
   const appendVoiceAssistantDelta = (delta: string) => {
@@ -263,6 +325,10 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
     setAttachments([]);
     setError(null);
     setIsStreaming(false);
+    const emptyProfile = createEmptyItemIntakeProfile();
+    intakeProfileRef.current = emptyProfile;
+    setIntakeProfile(emptyProfile);
+    setIsExtractingProfile(false);
     window.setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
@@ -344,6 +410,10 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
           <h1 className="oracle-hero text-center text-[44px] md:text-[56px] leading-[1.05] font-normal text-text-primary mb-10 animate-fade-in">
             What's the vibe, {userName}?
           </h1>
+        )}
+
+        {hasMessages && (hasUsefulIntake(intakeProfile) || isExtractingProfile) && (
+          <IntakeProfilePanel profile={intakeProfile} loading={isExtractingProfile} />
         )}
 
         {/* Conversation transcript */}
@@ -568,6 +638,56 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
 // ──────────────────────────────────────────────────────────────────────────
 // Subcomponents
 // ──────────────────────────────────────────────────────────────────────────
+
+function IntakeProfilePanel({
+  profile,
+  loading,
+}: {
+  profile: ItemIntakeProfile;
+  loading: boolean;
+}) {
+  const fields = profileDisplayFields(profile);
+
+  return (
+    <div className="w-full max-w-3xl mb-3 rounded-2xl border border-black/5 bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">
+          Structured intake
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              loading ? 'bg-google-blue animate-pulse' : 'bg-google-green'
+            }`}
+          />
+          {loading ? 'Extracting' : `${Math.round((profile.confidence || 0) * 100)}% confidence`}
+        </div>
+      </div>
+      {fields.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {fields.map(([label, value]) => (
+            <span
+              key={label}
+              className="inline-flex max-w-full items-center gap-1 rounded-full border border-black/5 bg-white px-2.5 py-1 text-[12px] text-text-secondary"
+            >
+              <span className="font-medium text-text-primary">{label}</span>
+              <span className="truncate">{value}</span>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="text-[12px] text-text-muted">
+          Listening for item, specs, condition, price target, and fulfillment details.
+        </div>
+      )}
+      {profile.missingFields.length > 0 && (
+        <div className="mt-2 text-[11px] text-text-muted">
+          Missing: {profile.missingFields.slice(0, 5).join(', ')}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function RailButton({
   children,
