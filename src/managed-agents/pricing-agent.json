@@ -1,0 +1,77 @@
+{
+  "agent_id": "pricing_agent_v1",
+  "name": "PricingSandbox_001",
+  "role": "pricing",
+  "display_name": "Pricing Agent",
+  "managed_runtime": "gemini-managed-agent",
+  "sandbox": {
+    "type": "managed_agent_sandbox",
+    "env": "python-3.11-isolated",
+    "entrypoint": "pricing_agent_sandbox_v1.0.sh",
+    "outputs": ["/workspace/comps.json", "/workspace/pricing_report.json"]
+  },
+  "model": "gemini-3.5-flash",
+  "color_token": "cyan",
+  "purpose": "Produce a defensible market price band by collecting normalized comps from approved resale sources inside a managed sandbox.",
+  "goal": "Generate a price band (list / fair / fast_sale) the Seller Agent can defend during negotiation.",
+  "system_prompt": "You run inside a managed agent sandbox. You ingest the item profile, query approved comp sources, normalize listings by chip, RAM, storage, condition, and accessories, reject statistical outliers, and emit a final pricing report. You never invent comps. You never undercut the seller floor.",
+  "context": {
+    "item_profile": {
+      "product_class": "MacBook Pro 14\"",
+      "chip": "Apple M3 Pro",
+      "ram_gb": 18,
+      "storage_gb": 512,
+      "color": "Space Black",
+      "condition": "Good / Mint"
+    },
+    "seller_floor": 725
+  },
+  "allowed_actions": [
+    "Browse approved comp sources (eBay refurbished index, Swappa, BackMarket).",
+    "Read seeded historical comp data.",
+    "Run normalization scripts inside the sandbox.",
+    "Emit /workspace/comps.json and /workspace/pricing_report.json."
+  ],
+  "blocked_actions": [
+    "Scrape prohibited platforms in violation of their terms.",
+    "Invent or hallucinate comparable listings.",
+    "Recommend a price band that undercuts the seller floor.",
+    "Persist data outside /workspace."
+  ],
+  "tools": [
+    "fetch_approved_comps",
+    "normalize_listings",
+    "reject_outliers",
+    "write_workspace_file"
+  ],
+  "logs": [
+    "⚡ Spawning Managed Agent Sandbox (env: python-3.11-isolated)...",
+    "📦 Loading item profile context: 'laptop, Apple, MacBook Pro 14'",
+    "🔍 Accessing approved market data endpoints...",
+    "🌐 Connecting to eBay API & Swappa public indexes...",
+    "📈 Scraping completed resale listings from the past 30 days...",
+    "📊 Normalizing 12 comps by condition (Good/Mint) & packaging...",
+    "🎯 Filtering statistical outliers (3 listings rejected)...",
+    "⚖️ Matching memory config: 18GB Unified RAM & 512GB SSD...",
+    "📝 Injecting local pickup preferences (Ferry Building / Shack15)...",
+    "💾 Saved comps structure -> /workspace/comps.json",
+    "💾 Generated final band -> /workspace/pricing_report.json",
+    "✅ Pricing Sandbox completed successfully in 12ms."
+  ],
+  "comps": [
+    { "title": "MacBook Pro 14\" M3 Pro (18GB/512GB) Space Black", "price": 899, "condition": "Mint", "source": "eBay Refurbished" },
+    { "title": "MacBook Pro 14\" Apple M3 Pro 11-CPU 14-GPU", "price": 810, "condition": "Good", "source": "Swappa" },
+    { "title": "MacBook Pro 14\" M3 Pro 18GB SSD 512GB", "price": 740, "condition": "Fair", "source": "Craigslist SF" },
+    { "title": "MacBook Pro 14-inch, M3 Pro, Space Black", "price": 825, "condition": "Good", "source": "BackMarket" }
+  ],
+  "pricing_report": {
+    "list_price": 875,
+    "fair_price": 800,
+    "fast_sale_price": 750,
+    "seller_floor": 725,
+    "confidence": 0.92,
+    "floor_safe": true,
+    "reasoning_summary": "Comparable listings cluster between $740 and $899. Seller floor is safe. $800 is a strong same-day sale price.",
+    "status": "complete"
+  }
+}

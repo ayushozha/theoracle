@@ -1,0 +1,5 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+browser-use>=0.3
+playwright>=1.49
+python-dotenv>=1.0

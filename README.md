@@ -1,28 +1,73 @@
-# Oracle
+# React + TypeScript + Vite
 
-Barter matchmaking against real Craigslist listings. Drop a photo (or chat) about something
-you want to trade; the Oracle finds a multi-hop ring of trades that gets you what you want,
-no money involved.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Built at the Google I/O Hackathon 2026 (Cerebral Valley + DeepMind).
+Currently, two official plugins are available:
 
-- `index.html` — single-page app, runs in browser
-- `seed.json` — 222 structured listings scraped + extracted from sfbay.craigslist.org/search/bar
-- `seed_embedded.json` — same listings with `gemini-embedding-001` vectors (legacy, unused by current chat flow)
-- `archive/v1-listing-grid/` — pre-pivot snapshot, see archive/README.md
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Run
+## React Compiler
 
-Static page, no build. Serve the dir:
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-python3 -m http.server 8766
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-Open http://localhost:8766/.
-
-## Stack
-
-- Gemini 3.5 Flash (`generateContent` + `streamGenerateContent`) for chat, vision, and ring matching
-- Function calling for the search tool
-- Speculative pre-fetch: after every user turn, predict the likely tool call and run the
-  matcher in the background so it's hot when the Oracle decides to invoke it
-- No backend; API key is embedded for hackathon convenience

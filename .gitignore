@@ -1,5 +1,34 @@
-config.local.js
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Env files (contain GEMINI_API_KEY)
+.env
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.history
+__pycache__/
+.venv/
+backend/.venv/
 .DS_Store
-functions/.env
-functions/.env.local
-functions/node_modules/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.gstack/
