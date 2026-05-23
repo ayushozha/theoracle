@@ -19,7 +19,6 @@ import { CONCIERGE_SYSTEM_PROMPT } from './agentPersona';
 import CameraCapture from './CameraCapture';
 import VoiceAgentControl from './VoiceAgentControl';
 import { buildUserParts, canPreviewImage } from './chatFlow';
-import BrowserViewport from '../browser/BrowserViewport';
 import BrowserViewportModal from '../browser/BrowserViewportModal';
 import { streamBrowserResearch } from '../browser/browserClient';
 import {
@@ -27,6 +26,7 @@ import {
   reduceBrowserState,
   type BrowserViewState,
 } from '../browser/types';
+import AgenticMessage from './AgenticMessage';
 
 interface UiMessage {
   id: string;
@@ -446,12 +446,7 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
               key={m.id}
               className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {m.role === 'model' && (
-                <div className="w-7 h-7 rounded-full gemini-gradient text-white flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5" />
-                </div>
-              )}
-              <div className="max-w-[78%]">
+              <div className="max-w-[90%] w-full">
                 {m.attachments && m.attachments.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-1.5 justify-end">
                     {m.attachments.map((a, i) =>
@@ -473,23 +468,10 @@ export default function GeminiChat({ mode, onStartAgentFlow, onClose }: Props) {
                     )}
                   </div>
                 )}
-                <div
-                  className={`${
-                    m.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-model'
-                  } text-sm whitespace-pre-wrap leading-relaxed`}
-                >
-                  {m.browser && (
-                    <BrowserViewport
-                      state={m.browser}
-                      onExpand={() => setExpandedBrowserId(m.id)}
-                    />
-                  )}
-                  {m.text || (m.streaming && !m.browser ? (
-                    <span className="typing-dots inline-flex items-center">
-                      <span /><span /><span />
-                    </span>
-                  ) : null)}
-                </div>
+                <AgenticMessage
+                  message={m}
+                  onExpandBrowser={() => setExpandedBrowserId(m.id)}
+                />
               </div>
             </div>
           ))}

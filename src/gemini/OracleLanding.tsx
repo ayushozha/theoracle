@@ -22,11 +22,9 @@ import {
   createEmptyItemIntakeProfile,
   extractItemIntakeProfile,
   hasUsefulIntake,
-  profileDisplayFields,
   type ItemIntakeProfile,
 } from './intakeProfile';
 import { buildResearchTask, generateMarketStrategy } from './marketStrategy';
-import BrowserViewport from '../browser/BrowserViewport';
 import BrowserViewportModal from '../browser/BrowserViewportModal';
 import { streamBrowserResearch } from '../browser/browserClient';
 import {
@@ -34,6 +32,8 @@ import {
   reduceBrowserState,
   type BrowserViewState,
 } from '../browser/types';
+import AgenticMessage from './AgenticMessage';
+import IntakeProfileHUD from './IntakeProfileHUD';
 
 interface UiMessage {
   id: string;
@@ -99,6 +99,18 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   const intakeProfileRef = useRef(intakeProfile);
 
   const hasMessages = messages.length > 0;
+
+  const handleSpecClick = (specName: string) => {
+    const template = `My ${specName.toLowerCase()} is: `;
+    setInput(template);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = textareaRef.current.value.length;
+        textareaRef.current.selectionEnd = textareaRef.current.value.length;
+      }
+    }, 50);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -413,7 +425,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
         )}
 
         {hasMessages && (hasUsefulIntake(intakeProfile) || isExtractingProfile) && (
-          <IntakeProfilePanel profile={intakeProfile} loading={isExtractingProfile} />
+          <IntakeProfileHUD profile={intakeProfile} loading={isExtractingProfile} onSpecClick={handleSpecClick} />
         )}
 
         {/* Conversation transcript */}
@@ -429,12 +441,7 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
                   m.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                {m.role === 'model' && (
-                  <div className="mt-1 flex-shrink-0">
-                    <GeminiSpark className="w-5 h-5" />
-                  </div>
-                )}
-                <div className="max-w-[80%]">
+                <div className="max-w-[90%] w-full">
                   {m.attachments && m.attachments.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-1.5 justify-end">
                       {m.attachments.map((a, i) =>
@@ -456,25 +463,12 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
                       )}
                     </div>
                   )}
-                  <div
-                    className={
-                      m.role === 'user'
-                        ? 'oracle-bubble-user'
-                        : 'oracle-bubble-model'
-                    }
-                  >
-                    {m.browser && (
-                      <BrowserViewport
-                        state={m.browser}
-                        onExpand={() => setExpandedBrowserId(m.id)}
-                      />
-                    )}
-                    {m.text || (m.streaming && !m.browser ? (
-                      <span className="typing-dots inline-flex items-center">
-                        <span /><span /><span />
-                      </span>
-                    ) : null)}
-                  </div>
+                  <AgenticMessage
+                    message={m}
+                    intakeProfile={intakeProfile}
+                    onSpecClick={handleSpecClick}
+                    onExpandBrowser={() => setExpandedBrowserId(m.id)}
+                  />
                 </div>
               </div>
             ))}
@@ -635,59 +629,6 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
   );
 }
 
-// ──────────────────────────────────────────────────────────────────────────
-// Subcomponents
-// ──────────────────────────────────────────────────────────────────────────
-
-function IntakeProfilePanel({
-  profile,
-  loading,
-}: {
-  profile: ItemIntakeProfile;
-  loading: boolean;
-}) {
-  const fields = profileDisplayFields(profile);
-
-  return (
-    <div className="w-full max-w-3xl mb-3 rounded-2xl border border-black/5 bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">
-          Structured intake
-        </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              loading ? 'bg-google-blue animate-pulse' : 'bg-google-green'
-            }`}
-          />
-          {loading ? 'Extracting' : `${Math.round((profile.confidence || 0) * 100)}% confidence`}
-        </div>
-      </div>
-      {fields.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {fields.map(([label, value]) => (
-            <span
-              key={label}
-              className="inline-flex max-w-full items-center gap-1 rounded-full border border-black/5 bg-white px-2.5 py-1 text-[12px] text-text-secondary"
-            >
-              <span className="font-medium text-text-primary">{label}</span>
-              <span className="truncate">{value}</span>
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div className="text-[12px] text-text-muted">
-          Listening for item, specs, condition, price target, and fulfillment details.
-        </div>
-      )}
-      {profile.missingFields.length > 0 && (
-        <div className="mt-2 text-[11px] text-text-muted">
-          Missing: {profile.missingFields.slice(0, 5).join(', ')}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function RailButton({
   children,
@@ -712,24 +653,5 @@ function RailButton({
     >
       {children}
     </button>
-  );
-}
-
-/** Inline Gemini 4-point sparkle, recolored with the brand gradient. */
-function GeminiSpark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id="gemini-spark-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#4285F4" />
-          <stop offset="50%" stopColor="#9168C0" />
-          <stop offset="100%" stopColor="#D96570" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M12 1l1.85 6.7L20.5 9.5l-6.65 1.85L12 18l-1.85-6.65L3.5 9.5l6.65-1.8L12 1z"
-        fill="url(#gemini-spark-grad)"
-      />
-    </svg>
   );
 }

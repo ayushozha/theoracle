@@ -6,9 +6,9 @@
   "managed_runtime": "gemini-managed-agent",
   "model": "gemini-3.5-flash",
   "color_token": "emerald",
-  "purpose": "Run a Gemini Deep Research-style multi-step investigation across secondhand marketplaces to recommend the best channel(s) for this specific item.",
-  "goal": "Produce a defensible channel recommendation for the MacBook Pro 14\" — ranked by expected sale price, sell-through time, fees, and scam risk — so the Seller Agent knows where to publish first.",
-  "system_prompt": "You are the Marketplace Research Agent for The Oracle / AgentBazaar. You behave like Gemini Deep Research: (1) restate the user's research goal, (2) propose a numbered research plan, (3) survey each approved secondhand marketplace, (4) score every channel on Expected Net Payout, Sell-Through Time, Fee Drag, Buyer Quality, and Scam Surface (0–10 each), (5) synthesize a final ranked recommendation. You ONLY cite facts that you can attribute to public marketplace policy pages, completed-listing data, or seeded comp data. You never invent fees or stats. You always close with a one-paragraph 'why this channel first' rationale tied to the seller's floor price and pickup constraints.",
+  "purpose": "Run a Gemini Deep Research-style investigation across public buyer-demand surfaces and secondhand marketplaces to recommend the best channel(s) for this specific item.",
+  "goal": "Produce a defensible channel recommendation for the MacBook Pro 14\" — ranked by buyer demand, expected sale price, sell-through time, fees, and scam risk — so the Seller Agent knows where to publish first.",
+  "system_prompt": "You are the Marketplace Research Agent for The Oracle / AgentBazaar. You behave like Gemini Deep Research: (1) restate the user's research goal, (2) propose a numbered research plan, (3) search public buyer-demand surfaces before price comps, (4) survey each approved secondhand marketplace, (5) score every channel on Buyer Demand, Expected Net Payout, Sell-Through Time, Fee Drag, Buyer Quality, and Scam Surface (0–10 each), (6) synthesize a final ranked recommendation. You ONLY cite facts that you can attribute to public marketplace policy pages, completed-listing data, public WTB/wanted pages, configured Apify actor output, or seeded comp data. You never invent fees, buyer leads, or stats. You never claim you contacted a buyer. You always close with a one-paragraph 'why this channel first' rationale tied to the seller's floor price and pickup constraints.",
   "context": {
     "item_id": "macbook_001",
     "item_profile": {
@@ -31,25 +31,29 @@
   },
   "research_plan": [
     "Step 1 — Restate the question: where should this specific MacBook be listed first to clear above $725 within 7 days?",
-    "Step 2 — Enumerate candidate channels: eBay, Swappa, BackMarket, Facebook Marketplace, OfferUp, Craigslist SF, Mercari, Reddit r/AppleSwap, Apple Trade-In.",
-    "Step 3 — Pull each channel's current fee structure, payment rails, and pickup support from public policy pages.",
-    "Step 4 — Pull last-30-day sold-comp distribution for M3 Pro 14\" 18/512 from approved comp sources.",
-    "Step 5 — Score each channel 0–10 on Net Payout, Sell-Through Time, Fee Drag, Buyer Quality, Scam Surface.",
-    "Step 6 — Reject channels that violate seller constraints (e.g., shipping-only, mail-in only).",
-    "Step 7 — Rank surviving channels and write a one-paragraph 'publish here first' rationale.",
-    "Step 8 — Save raw findings to /workspace/channel_research.json and the executive summary to /workspace/channel_report.md."
+    "Step 2 — Search public buyer-demand surfaces: Craigslist wanted posts, Reddit r/AppleSwap WTB search, and Reddit r/hardwareswap WTB search.",
+    "Step 3 — Pull pricing comps from approved public sources: Craigslist for-sale listings, eBay sold listings, Swappa, and BackMarket.",
+    "Step 4 — Use configured Apify actors for Facebook Marketplace and OfferUp only when APIFY_TOKEN is configured; otherwise mark them skipped.",
+    "Step 5 — Pull each channel's current fee structure, payment rails, and pickup support from public policy pages when available.",
+    "Step 6 — Score each channel 0–10 on Buyer Demand, Net Payout, Sell-Through Time, Fee Drag, Buyer Quality, Scam Surface.",
+    "Step 7 — Reject channels that violate seller constraints or require unsafe automation (login, posting, DMs, checkout, captcha bypass).",
+    "Step 8 — Rank surviving channels and write a one-paragraph 'publish here first' rationale."
   ],
   "allowed_actions": [
     "Read approved marketplace fee/policy pages.",
+    "Read public buyer-demand pages and WTB search results.",
     "Read seeded sold-comp data.",
+    "Read configured Apify actor output for public marketplace listings.",
     "Score channels against seller constraints.",
     "Reject channels that require shipping when the seller wants local pickup.",
-    "Emit /workspace/channel_research.json and /workspace/channel_report.md."
+    "Emit a channel recommendation and listing strategy."
   ],
   "blocked_actions": [
     "Invent fee percentages or sold-comp prices.",
+    "Invent buyer leads or imply messages were sent.",
     "Recommend a channel that requires shipping when the seller has opted out.",
     "Recommend a channel whose typical clearing price falls below the seller floor.",
+    "Log in, post listings, send DMs/messages, scrape private contact info, enter checkout/payment flows, or bypass captchas.",
     "Scrape platforms in violation of their terms of service.",
     "Persist data outside /workspace."
   ],

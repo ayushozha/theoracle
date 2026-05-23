@@ -37,6 +37,16 @@ Watch the live browser window during dev by overriding the headless flag:
 HEADLESS=0 uvicorn browser_use_server:app --port 8765
 ```
 
+## Research Sources
+
+The default demo path is public-only and does not need marketplace accounts:
+
+- Buyer demand: Craigslist wanted posts, Reddit `r/appleswap` WTB search, Reddit `r/hardwareswap` WTB search.
+- Price comps: Craigslist for-sale search, eBay sold listings, Swappa search, Back Market search.
+- Optional actor fallback: Facebook Marketplace and OfferUp can run through Apify when `APIFY_TOKEN` is set. Override actors with `APIFY_FACEBOOK_MARKETPLACE_ACTOR_ID` and `APIFY_OFFERUP_ACTOR_ID`.
+
+Guardrails are enforced in code: no login, no DMs/messages, no posting, no checkout/payment, no captcha bypass, and no private buyer contact scraping.
+
 ## Protocol
 
 WebSocket endpoint: `ws://localhost:8765/ws/research`
