@@ -64,6 +64,8 @@
   .msg-img { margin-top: 6px; }
   .msg-img img { max-width: 240px; max-height: 240px; border-radius: 10px; display: block; border: 1px solid var(--border); }
 
+  .composer-inner.dragging { border-color: var(--text); background: white; }
+  .composer-inner.processing { opacity: 0.55; pointer-events: none; }
   .typing {
     align-self: flex-start; padding: 12px 14px; background: var(--assistant-bubble); border-radius: 14px; border-top-left-radius: 4px;
     display: flex; gap: 4px; align-items: center;
@@ -88,13 +90,30 @@
     font: inherit; font-size: 14px; resize: none; padding: 6px 8px;
     min-height: 22px; max-height: 160px; line-height: 1.5;
   }
-  .composer .photo-btn, .composer .send-btn {
+  .composer .photo-btn, .composer .mic-btn, .composer .send-btn {
     width: 34px; height: 34px; border-radius: 8px; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0;
+    font-size: 16px; flex-shrink: 0; transition: background 0.15s, border-color 0.15s;
   }
-  .composer .photo-btn { background: white; border: 1px solid var(--border); color: var(--text-2); }
-  .composer .photo-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .composer .photo-btn, .composer .mic-btn { background: white; border: 1px solid var(--border); color: var(--text-2); }
+  .composer .photo-btn:hover, .composer .mic-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .composer .mic-btn.recording {
+    background: #ef4444; color: white; border-color: #ef4444;
+    animation: micPulse 1.2s infinite ease-in-out;
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+  }
+  .voice-hint {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.85); color: white; padding: 8px 14px; border-radius: 999px;
+    font-size: 12px; display: none; align-items: center; gap: 8px; z-index: 100;
+  }
+  .voice-hint.show { display: flex; }
+  .voice-hint .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: micPulse 1s infinite;
+  }
   .composer .send-btn { background: var(--accent); color: white; }
   .composer .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .composer .send-btn:hover:not(:disabled) { opacity: 0.85; }
@@ -178,18 +197,23 @@
       <div class="attachments" id="attachments"></div>
       <div class="composer-inner">
         <button class="photo-btn" id="photo-btn" title="Attach photo">📷</button>
+        <button class="mic-btn" id="mic-btn" title="Voice input — click or hold space">🎙</button>
         <input type="file" id="file-input" accept="image/*" style="display:none">
         <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
         <textarea id="composer" placeholder="Tell the Oracle what you'd trade…" rows="1"></textarea>
         <button class="send-btn" id="send-btn" disabled>→</button>
       </div>
-      <div class="hint">The Oracle asks short questions to understand the trade, then surfaces a ring across <span id="pool-count">…</span> real Craigslist listings.</div>
+      <div class="hint">The Oracle asks short questions, then surfaces a ring across <span id="pool-count">…</span> Craigslist listings. <span style="color:var(--text-3);">Hold space to speak.</span></div>
     </div>
   </div>
 </div>
 
+<script src="config.local.js"></script>
 <script>
-const GEMINI_KEY = "AIzaSyCGt3ZXPHBY73w3wjUz284Ai3h6uqwFXdw";
+const GEMINI_KEY = (typeof window !== 'undefined' && window.__ORACLE_KEY) || '';
+if (!GEMINI_KEY) {
+  alert("No API key found. Copy config.example.js to config.local.js and paste your Gemini key.");
+}
 const MODEL = "gemini-3.5-flash";
 const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
 const STREAM_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
@@ -203,9 +227,10 @@ let USER_OFFERING = null;   // {title, category, condition, story, image_b64, im
 let USER_WANTS = [];        // string[]
 let ATTACHMENTS = [];       // [{b64, mime, dataUrl}]
 let TURNS_SINCE_SEARCH = 0;
-let SPEC_PROMISE = null;       // pending speculative search
-let SPEC_KEY = null;           // fingerprint of speculative args
-let SPEC_ABORT = null;         // AbortController for in-flight speculation
+let SPEC_PROMISE = null;
+let SPEC_KEY = null;
+let SPEC_ABORT = null;
+const RENDERED = new WeakSet();  // tracks which function-response objects have been rendered, without polluting HISTORY
 
 // ---- Boot ----
 (async () => {
@@ -633,7 +658,18 @@ async function sendTurn(userText, images) {
   await runAssistantLoop();
 }
 
+function setProcessing(on) {
+  document.querySelector('.composer-inner').classList.toggle('processing', on);
+  composer.disabled = on;
+  micBtn.disabled = on;
+  photoBtn.disabled = on;
+  sendBtn.disabled = on || (!composer.value.trim() && ATTACHMENTS.length === 0);
+  if (on && recording) stopVoice();
+  composer.placeholder = on ? 'Oracle is thinking…' : "Tell the Oracle what you'd trade…";
+}
+
 async function runAssistantLoop() {
+  setProcessing(true);
   showTyping();
   let safety = 0;
   while (safety++ < 4) {
@@ -653,12 +689,13 @@ async function runAssistantLoop() {
       if (j.error) throw new Error(j.error.message);
     } catch(e) {
       hideTyping();
+      setProcessing(false);
       appendMessage('assistant', `Error: ${e.message}`);
       return;
     }
 
     const candidate = j.candidates && j.candidates[0];
-    if (!candidate) { hideTyping(); appendMessage('assistant', 'No response.'); return; }
+    if (!candidate) { hideTyping(); setProcessing(false); appendMessage('assistant', 'No response.'); return; }
     const parts = candidate.content?.parts || [];
     const funcCalls = parts.filter(p => p.functionCall);
     const textParts = parts.filter(p => p.text).map(p => p.text);
@@ -702,17 +739,19 @@ async function runAssistantLoop() {
       // Render with possibly inline ring cards from the most recent searchMatches call
       const lastFn = [...HISTORY].reverse().find(m => m.role === 'function' && m.parts?.[0]?.functionResponse?.name === 'search_matches');
       let ringHtmls = [];
-      if (lastFn && !lastFn._rendered) {
+      if (lastFn && !RENDERED.has(lastFn)) {
         const rings = lastFn.parts[0].functionResponse.response.rings || [];
-        ringHtmls = rings.slice(0, 1).map(renderRingCard); // show top ring inline
-        lastFn._rendered = true;
+        ringHtmls = rings.map(renderRingCard);   // ALL rings, not just first
+        RENDERED.add(lastFn);
       }
       HISTORY.push({ role: 'model', parts: [{ text }] });
       appendMessage('assistant', text, { ringCards: ringHtmls });
     }
+    setProcessing(false);
     return;
   }
   hideTyping();
+  setProcessing(false);
 }
 
 // ---- Conversation start ----
@@ -784,6 +823,8 @@ async function send() {
   const text = composer.value.trim();
   const imgs = ATTACHMENTS.slice();
   if (!text && imgs.length === 0) return;
+  if (recording) stopVoice();
+  baseText = '';
   composer.value = '';
   composer.style.height = 'auto';
   ATTACHMENTS = [];
@@ -792,7 +833,99 @@ async function send() {
   await sendTurn(text, imgs);
 }
 
+// Drag-and-drop images on the composer / chat area
+const composerInner = document.querySelector('.composer-inner');
+const chatWrap = document.querySelector('.chat-wrap');
+function handleDragOver(e) {
+  if (e.dataTransfer && Array.from(e.dataTransfer.items || []).some(it => it.kind === 'file')) {
+    e.preventDefault();
+    composerInner.classList.add('dragging');
+  }
+}
+function handleDrop(e) {
+  if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+  e.preventDefault();
+  composerInner.classList.remove('dragging');
+  for (const f of e.dataTransfer.files) {
+    if (f.type.startsWith('image/')) addAttachment(f);
+  }
+}
+chatWrap.addEventListener('dragover', handleDragOver);
+chatWrap.addEventListener('dragleave', () => composerInner.classList.remove('dragging'));
+chatWrap.addEventListener('drop', handleDrop);
+document.body.addEventListener('dragover', e => { if (Array.from(e.dataTransfer.items||[]).some(it=>it.kind==='file')) e.preventDefault(); });
+document.body.addEventListener('drop', e => e.preventDefault());
+
 document.getElementById('reset-btn').onclick = startConversation;
+
+// ---- Voice input (Web Speech API) ----
+const micBtn = document.getElementById('mic-btn');
+let recognition = null, recording = false, baseText = '';
+const voiceHint = document.createElement('div');
+voiceHint.className = 'voice-hint';
+voiceHint.innerHTML = '<span class="dot"></span> listening… release space or click mic to stop';
+document.body.appendChild(voiceHint);
+
+function startVoice() {
+  if (recording) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Voice input not supported in this browser. Try Chrome or Safari.'); return; }
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  baseText = composer.value.replace(/\s+$/, '');
+  recognition.onresult = (event) => {
+    let finalAdd = '', interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalAdd += t;
+      else interim += t;
+    }
+    if (finalAdd) {
+      baseText = (baseText + ' ' + finalAdd).trim();
+    }
+    composer.value = (baseText + ' ' + interim).trim();
+    composer.dispatchEvent(new Event('input'));
+  };
+  recognition.onend = () => { stopVoice(); };
+  recognition.onerror = (e) => { console.warn('voice err', e.error); stopVoice(); };
+  try {
+    recognition.start();
+    recording = true;
+    updateMicUI();
+  } catch(e) { console.warn(e); }
+}
+
+function stopVoice() {
+  if (recognition) { try { recognition.stop(); } catch(_) {} recognition = null; }
+  recording = false;
+  updateMicUI();
+}
+
+function updateMicUI() {
+  micBtn.classList.toggle('recording', recording);
+  micBtn.textContent = recording ? '◉' : '🎙';
+  voiceHint.classList.toggle('show', recording);
+}
+
+micBtn.onclick = (e) => { e.preventDefault(); recording ? stopVoice() : startVoice(); };
+
+// Hold-space-to-talk (only when not typing in a text field)
+let spaceHeld = false;
+document.addEventListener('keydown', (e) => {
+  if (e.code !== 'Space' || spaceHeld) return;
+  const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
+  if (tag === 'textarea' || tag === 'input') return; // don't hijack typing
+  spaceHeld = true;
+  e.preventDefault();
+  startVoice();
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code !== 'Space' || !spaceHeld) return;
+  spaceHeld = false;
+  stopVoice();
+});
 </script>
 </body>
 </html>
