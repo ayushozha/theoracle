@@ -940,7 +940,7 @@ async function extractUserListing() {
       wants: [],
       specific: true,
     };
-    USER_WANTS = extracted.estimated_want_options.slice(0, 5);
+    USER_WANTS = ['anything', ...(extracted.estimated_want_options || [])].slice(0, 5);
 
     const card = document.getElementById('extracted');
     card.classList.remove('empty');
