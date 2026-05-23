@@ -788,7 +788,12 @@ async function runMatch() {
     document.getElementById('rings').innerHTML = `<div class="empty">Add at least one thing you'd take in return.</div>`;
     return;
   }
-  USER_LISTING.wants = cleanedWants.map(thing => ({ thing, why: '', specific: true }));
+  // Mark generic/catch-all phrases so the matcher treats them as stretch edges, not strong.
+  const CATCHALL = /^(anything|any|whatever|open to offers?|offers?|trade|trades?|items?|stuff|something|cash)$/i;
+  USER_LISTING.wants = cleanedWants.map(thing => ({
+    thing, why: '',
+    specific: !CATCHALL.test(thing.trim()),
+  }));
   LISTINGS_BY_ID['you'] = USER_LISTING;
 
   const btn = document.getElementById('find-btn');
@@ -809,13 +814,15 @@ async function runMatch() {
 
 A trade ring is a directed cycle. Member 1 receives from Member N. Member 2 receives from Member 1. Etc. Everyone gets one of their specific wants fulfilled, no money changes hands.
 
-HARD RULES:
+HARD RULES (a ring violating ANY of these must be dropped, not returned):
 - EVERY returned ring MUST include listing_id "you".
-- "you" appears exactly once per ring (no duplicates).
+- "you" appears exactly once per ring (no duplicates). Each other listing appears at most once.
 - No two members offer the same or near-identical items.
-- At MOST one catch-all edge per ring. Prefer zero.
-- satisfies_my_want must quote VERBATIM from that listing's wants AND must be SEMANTICALLY satisfied by the previous member's concrete offer. If the previous member is offering a motorcycle, you CANNOT claim that satisfies a want for "Steam Deck" — pick a different want from their list, or don't include them in the ring at all. If no want of theirs is actually satisfied by what's offered, the ring is invalid.
-- The ring title and summary MUST only name members and items that actually appear in the ring. Do not reference items from the hint cache that aren't in the ring you returned.
+- satisfies_my_want must quote VERBATIM from that listing's wants AND must be SEMANTICALLY satisfied by the previous member's concrete offer. Test: would a normal human looking at the previous member's offered item agree this want is fulfilled? If not, the ring is invalid — do not return it. Examples of INVALID matches: pickup truck satisfying "caregiving services", motorcycle satisfying "Steam Deck", apartment satisfying "vegetarian meal preparation".
+- A want marked [catch-all] (including the user's "anything") is NEVER a strong match. Edges through catch-all wants are AT MOST stretch quality, and the whole ring containing one is AT MOST stretch quality.
+- Better to return ZERO rings than to invent matches. If the user's listing has no real ring closure in the pool, return rings: [] with a brief note. Do not pad output with stretch rings just to fill the count.
+- The why_fits field MUST cite the actual previous member's listing — never reference a different listing_id than the one immediately before in the ring order.
+- The ring title and summary MUST only name members and items that actually appear in the ring. Do not leak items from the hint cache that aren't in the ring you returned.
 
 QUALITY:
 - strong: offer exactly matches a named want.
