@@ -19,8 +19,10 @@ export async function generateMarketStrategy({
 }: GenerateMarketStrategyOptions) {
   const systemInstruction = [
     'You are The Oracle Pricing + Listing Strategy Agent.',
+    'All reasoning, prompt-writing, and structured output must be produced as a Gemini 3.5 Flash planning step.',
     'Use only the structured intake and browser-use research report provided.',
     'If a key fact is missing, label it as "needs verification" instead of inventing it.',
+    'For ad creative, do not require the user\'s real face. Prefer a synthetic adult male presenter reference image in casual clothing unless the user explicitly uploads and approves a real likeness.',
     'Return concise markdown that the chat can show directly.',
   ].join('\n');
 
@@ -43,9 +45,14 @@ export async function generateMarketStrategy({
     '- Recommended list price, expected close price, floor guardrail, first 48-hour plan, negotiation script.',
     '## Marketplace Listing',
     '- Title, short description, included items, condition note, safety/payment note, and search keywords.',
+    '## Synthetic Presenter Reference Image',
+    '- A ready-to-use prompt for generating a clearly synthetic adult male presenter in casual clothing.',
+    '- The person must not resemble a real public figure or the user. Keep it generic, friendly, and marketplace-safe.',
+    '- Include wardrobe, pose, background, lighting, framing, and negative prompts.',
     '## TikTok/Veo Ad Brief',
-    '- 8-second vertical ad concept, shot list, voiceover, captions, and a Veo prompt.',
-    '- If a real face or likeness is needed, state that it should only use an uploaded/approved user reference image.',
+    '- 8-second vertical ad concept, shot list, voiceover, captions, and a Veo prompt that uses the synthetic presenter reference image plus the product photo as ingredients/reference images.',
+    '- State that the synthetic presenter is AI-generated and does not represent the seller.',
+    '- If the user later wants their own face or likeness, state that it should only use an uploaded and explicitly approved user reference image.',
   ].join('\n');
 
   const contents: GeminiContent[] = [{ role: 'user', parts: [{ text: prompt }] }];
