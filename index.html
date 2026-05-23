@@ -258,6 +258,28 @@
   .chain-card {
     border: 1px solid var(--border); border-radius: 8px; background: white; margin-bottom: 14px; overflow: hidden;
   }
+  .chain-hero {
+    display: flex; gap: 4px; padding: 0; background: var(--bg-mute);
+    height: 140px; border-bottom: 1px solid var(--border);
+  }
+  .chain-hero .slot {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    background: white; overflow: hidden; position: relative; min-width: 0;
+  }
+  .chain-hero .slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .chain-hero .slot .no-img-text {
+    font-size: 11px; color: var(--text-3); padding: 6px 10px; text-align: center; line-height: 1.4;
+  }
+  .chain-hero .slot.missing {
+    background: repeating-linear-gradient(45deg, #fefce8, #fefce8 8px, #fef3c7 8px, #fef3c7 16px);
+    border-left: 2px dashed #f59e0b;
+  }
+  .chain-hero .slot.missing .missing-text {
+    text-align: center; font-size: 11px; color: var(--moderate); font-weight: 600; padding: 6px 10px; line-height: 1.4;
+  }
+  .chain-hero .arrow {
+    background: var(--bg-mute); padding: 0 4px; display: flex; align-items: center; color: var(--text-3); font-size: 14px; flex-shrink: 0;
+  }
   .chain-card-head {
     padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
   }
@@ -413,7 +435,6 @@
 <div class="tabs">
   <button class="tab active" data-tab="trade">Trade something</button>
   <button class="tab" data-tab="chains">Open chains <span class="badge" id="chains-count">…</span></button>
-  <button class="tab" data-tab="listings">All listings <span class="badge" id="listings-tab-count">…</span></button>
 </div>
 
 <div class="tab-panel active" id="panel-trade">
@@ -470,6 +491,25 @@
   </div>
   <div id="rings"></div>
 </div>
+
+<hr class="divider">
+
+<div class="section">
+  <div class="section-head">
+    <h2>All listings</h2>
+    <span class="desc" id="listings-count">…</span>
+  </div>
+  <div class="filters">
+    <input id="search" placeholder="search by item, story, location…">
+    <span class="chip active" data-cat="all">all</span>
+    <span class="chip" data-cat="vehicle">vehicles</span>
+    <span class="chip" data-cat="music">music</span>
+    <span class="chip" data-cat="services">services</span>
+    <span class="chip" data-cat="computing">computing</span>
+    <span class="chip" data-cat="collectibles">collectibles</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
 </div><!-- end panel-trade -->
 
 <div class="tab-panel" id="panel-chains">
@@ -481,25 +521,6 @@
     <div id="chains-list"></div>
   </div>
 </div><!-- end panel-chains -->
-
-<div class="tab-panel" id="panel-listings">
-  <div class="section">
-    <div class="section-head">
-      <h2>All listings</h2>
-      <span class="desc" id="listings-count">…</span>
-    </div>
-    <div class="filters">
-      <input id="search" placeholder="search by item, story, location…">
-      <span class="chip active" data-cat="all">all</span>
-      <span class="chip" data-cat="vehicle">vehicles</span>
-      <span class="chip" data-cat="music">music</span>
-      <span class="chip" data-cat="services">services</span>
-      <span class="chip" data-cat="computing">computing</span>
-      <span class="chip" data-cat="collectibles">collectibles</span>
-    </div>
-    <div class="grid" id="grid"></div>
-  </div>
-</div><!-- end panel-listings -->
 
 <script src="config.local.js"></script>
 <script>
@@ -536,7 +557,6 @@ let filter = { q: '', cat: 'all' };
   document.getElementById('dataset-meta').textContent = `${LISTINGS.length} listings · ${OPEN_CHAINS.length} open chains · Craigslist SF Bay /bar`;
   document.getElementById('listings-count').textContent = `${LISTINGS.length} active`;
   document.getElementById('chains-count').textContent = OPEN_CHAINS.length;
-  document.getElementById('listings-tab-count').textContent = LISTINGS.length;
   renderStats();
   renderGrid();
   renderChains();
@@ -585,8 +605,24 @@ function renderChains() {
       `;
     }).join('');
     const qclass = chain.chain_quality || '';
+    // Hero strip: image per member + a missing-slot tile
+    const heroSlots = chain.members.map(m => {
+      const l = LISTINGS_BY_ID[m.listing_id];
+      const img = l && l.images && l.images[0];
+      return img
+        ? `<div class="slot"><img src="${escapeHtml(img)}" loading="lazy" alt=""></div>`
+        : `<div class="slot"><span class="no-img-text">${escapeHtml((l && l.has.title) || m.offer_summary || 'no image')}</span></div>`;
+    }).join('<div class="arrow">→</div>');
+    const heroHtml = `
+      <div class="chain-hero">
+        ${heroSlots}
+        <div class="arrow">→</div>
+        <div class="slot missing"><div class="missing-text">missing slot<br>${escapeHtml(chain.missing_slot.would_offer_like.slice(0, 40))}</div></div>
+      </div>
+    `;
     return `
       <div class="chain-card">
+        ${heroHtml}
         <div class="chain-card-head">
           <span class="chain-card-id">${escapeHtml(chain.id)}</span>
           <span class="chain-card-summary">${escapeHtml(chain.summary)}</span>
