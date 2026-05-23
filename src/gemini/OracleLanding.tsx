@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps } from 'react';
 import {
   Plus,
   ChevronDown,
@@ -8,6 +8,12 @@ import {
   Square,
   X,
   ArrowRight,
+  Sparkles,
+  DollarSign,
+  ShieldAlert,
+  PenLine,
+  Globe,
+  PlayCircle,
 } from 'lucide-react';
 import {
   streamGeminiChat,
@@ -68,13 +74,35 @@ interface Props {
   onStartAgentFlow?: () => void;
 }
 
-const QUICK_PROMPTS = [
-  'I want to sell my MacBook',
-  "What's a fair price for this?",
-  'Is this offer a scam?',
-  'Draft a listing for me',
-  'Research where to sell my MacBook live',
+type IconC = ComponentType<SVGProps<SVGSVGElement>>;
+
+// Quick prompts are intent-coded — each chip has a category color so the
+// landing surface reads as a multi-agent product, not a generic chat input.
+const QUICK_PROMPTS: Array<{
+  text: string;
+  icon: IconC;
+  tone: 'violet' | 'cyan' | 'rose' | 'amber' | 'emerald';
+}> = [
+  { text: 'I want to sell my MacBook',              icon: Sparkles,    tone: 'violet'  },
+  { text: "What's a fair price for this?",          icon: DollarSign,  tone: 'cyan'    },
+  { text: 'Is this offer a scam?',                  icon: ShieldAlert, tone: 'rose'    },
+  { text: 'Draft a listing for me',                 icon: PenLine,     tone: 'amber'   },
+  { text: 'Research where to sell my MacBook live', icon: Globe,       tone: 'emerald' },
 ];
+
+// Per-tone classes so Tailwind keeps them in the JIT output (string interpolation breaks purging).
+const TONE_CLASSES: Record<typeof QUICK_PROMPTS[number]['tone'], string> = {
+  violet:
+    'border-violet-500/20 bg-violet-500/[0.04] text-violet-600 hover:bg-violet-500/[0.08] hover:border-violet-500/40',
+  cyan:
+    'border-cyan-500/25 bg-cyan-500/[0.04] text-cyan-600 hover:bg-cyan-500/[0.08] hover:border-cyan-500/45',
+  rose:
+    'border-rose-500/20 bg-rose-500/[0.04] text-rose-600 hover:bg-rose-500/[0.08] hover:border-rose-500/40',
+  amber:
+    'border-amber-500/25 bg-amber-500/[0.04] text-amber-600 hover:bg-amber-500/[0.08] hover:border-amber-500/45',
+  emerald:
+    'border-emerald-500/25 bg-emerald-500/[0.04] text-emerald-600 hover:bg-emerald-500/[0.08] hover:border-emerald-500/45',
+};
 
 const newId = () =>
   globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -419,9 +447,29 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
       >
         {/* Hero — shown only when chat is empty */}
         {!hasMessages && (
-          <h1 className="oracle-hero text-center text-[44px] md:text-[56px] leading-[1.05] font-normal text-text-primary mb-10 animate-fade-in">
-            What's the vibe, {userName}?
-          </h1>
+          <div className="flex flex-col items-center text-center mb-10 animate-fade-in">
+            {/* Eyebrow — sparkle pill with product byline */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-violet-500/15 shadow-sm mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+              <span className="text-[11px] font-semibold tracking-wide text-text-secondary">
+                The Oracle · 6 Gemini agents orchestrating one resale
+              </span>
+            </div>
+
+            {/* Headline with gradient on the name */}
+            <h1 className="oracle-hero text-[44px] md:text-[60px] leading-[1.05] font-normal text-text-primary tracking-tight">
+              What's the vibe,{' '}
+              <span className="text-gradient font-medium">{userName}</span>
+              <span className="text-text-primary">?</span>
+            </h1>
+
+            {/* Sub-line */}
+            <p className="mt-4 max-w-xl text-[13.5px] leading-relaxed text-text-secondary">
+              Drop a photo or paste a listing. Your seller agent will price it,
+              research the best marketplace, negotiate the deal, and route every
+              risky message past a trust agent — you stay in the loop.
+            </p>
+          </div>
         )}
 
         {hasMessages && (hasUsefulIntake(intakeProfile) || isExtractingProfile) && (
@@ -587,29 +635,31 @@ export default function OracleLanding({ userName = 'Ayush', onStartAgentFlow }: 
           )}
         </div>
 
-        {/* Quick prompts — only on empty state */}
+        {/* Quick prompts — intent-coded chips with icons */}
         {!hasMessages && (
-          <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-3xl">
-            {QUICK_PROMPTS.map((p) => (
+          <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-3xl">
+            {QUICK_PROMPTS.map(({ text, icon: Icon, tone }) => (
               <button
-                key={p}
-                onClick={() => setInput(p)}
-                className="text-[12px] px-3 py-1.5 rounded-full border border-black/10 text-text-secondary bg-white/60 hover:bg-white hover:border-google-blue/30 transition-colors"
+                key={text}
+                onClick={() => setInput(text)}
+                className={`group inline-flex items-center gap-1.5 text-[12.5px] font-medium px-3 py-1.5 rounded-full border bg-white shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow ${TONE_CLASSES[tone]}`}
               >
-                {p}
+                <Icon className="w-3.5 h-3.5 opacity-80 group-hover:opacity-100 transition-opacity" />
+                <span>{text}</span>
               </button>
             ))}
           </div>
         )}
 
-        {/* Discreet link to the 9-screen agent flow */}
+        {/* Demo CTA — promoted from grey text link to an outlined pill */}
         {onStartAgentFlow && !hasMessages && (
           <button
             onClick={onStartAgentFlow}
-            className="mt-6 text-[12px] text-text-muted hover:text-google-blue inline-flex items-center gap-1"
+            className="group mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 bg-white text-text-secondary hover:text-text-primary hover:border-google-blue/40 hover:bg-google-blue/[0.03] transition-all shadow-sm hover:shadow"
           >
-            Or watch the 3-min agent demo
-            <ArrowRight className="w-3.5 h-3.5" />
+            <PlayCircle className="w-4 h-4 text-google-blue" />
+            <span className="text-[12.5px] font-semibold">Watch the 3-min agent demo</span>
+            <ArrowRight className="w-3.5 h-3.5 text-text-muted group-hover:translate-x-0.5 group-hover:text-google-blue transition-all" />
           </button>
         )}
       </main>

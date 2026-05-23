@@ -1,10 +1,59 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
-  Terminal, ChevronDown, ChevronUp, Activity
+  Terminal, ChevronDown, ChevronUp, Plus, Sparkles
 } from 'lucide-react';
 import type { BrowserViewState } from '../browser/types';
 import type { ItemIntakeProfile } from './intakeProfile';
 import BrowserViewport from '../browser/BrowserViewport';
+
+// Tiny inline-markdown renderer. Handles **bold**, *italic*, and `code`
+// across each paragraph. Heavier than nothing, lighter than pulling react-markdown.
+// Preserves paragraph breaks (double newline) and single line breaks within paragraphs.
+function renderInlineMd(text: string): ReactNode {
+  // Split on blank lines for paragraphs.
+  const paragraphs = text.split(/\n{2,}/);
+  return paragraphs.map((para, pi) => {
+    const lines = para.split('\n');
+    const nodes: ReactNode[] = [];
+    lines.forEach((line, li) => {
+      // Tokenize **bold**, *italic*, `code` left-to-right.
+      const tokens: ReactNode[] = [];
+      let rest = line;
+      let key = 0;
+      const re = /(\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|`([^`\n]+)`)/;
+      while (rest.length > 0) {
+        const m = rest.match(re);
+        if (!m || m.index === undefined) {
+          tokens.push(rest);
+          break;
+        }
+        if (m.index > 0) tokens.push(rest.slice(0, m.index));
+        if (m[2] !== undefined) {
+          tokens.push(<strong key={`b${key++}`} className="font-bold text-text-primary">{m[2]}</strong>);
+        } else if (m[3] !== undefined) {
+          tokens.push(<em key={`i${key++}`} className="italic">{m[3]}</em>);
+        } else if (m[4] !== undefined) {
+          tokens.push(
+            <code
+              key={`c${key++}`}
+              className="px-1.5 py-0.5 rounded-md bg-violet-500/8 text-violet-600 font-mono text-[12px]"
+            >
+              {m[4]}
+            </code>,
+          );
+        }
+        rest = rest.slice(m.index + m[0].length);
+      }
+      nodes.push(<span key={li}>{tokens}</span>);
+      if (li < lines.length - 1) nodes.push(<br key={`br${li}`} />);
+    });
+    return (
+      <p key={pi} className={pi === 0 ? '' : 'mt-3'}>
+        {nodes}
+      </p>
+    );
+  });
+}
 
 interface UiMessage {
   id: string;
@@ -133,16 +182,17 @@ export default function AgenticMessage({
     })();
 
     return (
-      <div className="flex flex-col items-end gap-1 w-full animate-fade-in">
-        {/* User tag */}
-        <div className="flex items-center gap-1.5 px-2 text-[9px] font-semibold text-text-muted tracking-wider uppercase select-none">
+      <div className="flex flex-col items-end gap-1.5 w-full animate-fade-in">
+        {/* User tag — small pill with brand-tinted dot */}
+        <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-violet-500/5 border border-violet-500/10 text-[9.5px] font-semibold text-violet-500 tracking-wider uppercase select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
           <span>{userIntent}</span>
-          <span className="w-1 h-1 rounded-full bg-google-blue" />
-          <span>Ayush (Owner)</span>
+          <span className="w-0.5 h-0.5 rounded-full bg-violet-400/60" />
+          <span className="text-text-secondary normal-case font-medium tracking-normal">Ayush · Owner</span>
         </div>
 
-        {/* User bubble */}
-        <div className="oracle-bubble-user bg-violet-600 text-white rounded-3xl rounded-tr-sm border border-violet-500/20 py-2.5 px-4 shadow-md max-w-[85%] text-sm leading-relaxed">
+        {/* User bubble — narrower so dialogue feels conversational, not headline-wide */}
+        <div className="bg-violet-600 text-white rounded-3xl rounded-tr-md border border-violet-500/30 py-2.5 px-4 shadow-md max-w-[min(560px,85%)] text-[14px] leading-relaxed">
           {text}
         </div>
       </div>
@@ -151,30 +201,35 @@ export default function AgenticMessage({
 
   // Render Assistant (Model) Message bubble
   return (
-    <div className="flex flex-col items-start gap-1.5 w-full animate-fade-in group">
-      {/* Agent Concierge Header */}
-      <div className="flex items-center justify-between w-full px-2 text-[9px] font-bold text-text-muted tracking-wider uppercase select-none">
-        <div className="flex items-center gap-2">
-          <div className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
-          </div>
-          <span className="text-text-primary">Oracle Agentic Concierge</span>
-          <span className="text-[8px] border border-black/5 dark:border-white/5 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[8px]">
-            Gemini 3.5 Flash
-          </span>
+    <div className="flex flex-col items-start gap-2 w-full animate-fade-in group">
+      {/* Concierge identity row — name + model + live agent dots */}
+      <div className="flex items-center gap-2 flex-wrap pl-1 select-none">
+        <div className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500" />
         </div>
+        <span className="text-[10px] font-bold text-text-primary tracking-wider uppercase">
+          Oracle Agentic Concierge
+        </span>
+        <span className="text-[9px] font-semibold text-violet-500 bg-violet-500/8 border border-violet-500/15 px-1.5 py-0.5 rounded-md font-mono tracking-wide">
+          Gemini 3.5 Flash
+        </span>
 
-        {/* Mini Active Agents HUD inside Bubble */}
-        <div className="flex items-center gap-1">
-          {AGENTS.map(agent => {
+        {/* Agent activity HUD — separated with a divider so it doesn't look like part of the name */}
+        <span className="text-[9px] text-text-muted uppercase tracking-widest ml-1">·</span>
+        <div className="flex items-center gap-1" title="Active agents">
+          {AGENTS.map((agent) => {
             const isActive = activeAgentIds.includes(agent.id);
             return (
               <span
                 key={agent.id}
                 title={`${agent.name}: ${isActive ? 'Active' : 'Standby'}`}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  isActive ? agent.color.split(' ')[0] + ' scale-110' : 'bg-slate-200 dark:bg-slate-800'
+                  isActive
+                    ? `${agent.color.split(' ')[0]} ring-2 ring-offset-1 ring-offset-transparent ${
+                        agent.color.split(' ')[0].replace('bg-', 'ring-')
+                      }/30 scale-110`
+                    : 'bg-slate-200/80'
                 }`}
               />
             );
@@ -182,11 +237,8 @@ export default function AgenticMessage({
         </div>
       </div>
 
-      {/* Main Agent Bubble Container */}
-      <div className="w-full max-w-[90%] rounded-3xl rounded-tl-sm border border-violet-500/10 bg-white/80 dark:bg-slate-900/80 p-4 md:p-5 shadow-lg backdrop-blur-md relative overflow-hidden transition-all hover:border-violet-500/20">
-
-        {/* Subtle dynamic glow */}
-        <div className="absolute top-0 left-0 w-24 h-24 bg-radial-gradient from-violet-500/5 via-transparent to-transparent pointer-events-none" />
+      {/* Main bubble — constrained width for readability */}
+      <div className="w-full max-w-[640px] rounded-3xl rounded-tl-md border border-violet-500/12 bg-white p-5 shadow-sm hover:shadow-md hover:border-violet-500/20 transition-all">
 
         {/* Live browser viewport inside message bubble */}
         {message.browser && (
@@ -198,42 +250,50 @@ export default function AgenticMessage({
           </div>
         )}
 
-        {/* Structured message parsing & layout */}
+        {/* Body — inline markdown renderer, well-spaced paragraphs */}
         {text ? (
-          <div className="text-[14px] leading-relaxed text-text-primary whitespace-pre-wrap select-text markdown-content">
-            {text}
+          <div className="text-[14px] leading-[1.6] text-text-primary select-text">
+            {renderInlineMd(text)}
           </div>
         ) : message.streaming && !message.browser ? (
           <div className="flex items-center gap-2 py-1 select-none">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
               <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '150ms' }} />
               <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
-            <span className="text-[10px] text-violet-400 font-bold uppercase tracking-wider font-mono">
-              Agent clusters responding...
+            <span className="text-[10px] text-violet-500 font-semibold uppercase tracking-wider">
+              Agent clusters responding…
             </span>
           </div>
         ) : null}
 
-        {/* Dynamic Spec Registry Checklist shortcut (inline widget inside chat bubble) */}
+        {/* Missing-specs checklist — promoted to a proper card-within-card with brand-tinted accent */}
         {intakeProfile && intakeProfile.missingFields.length > 0 && text.includes('photo') && (
-          <div className="mt-4 border-t border-black/5 dark:border-white/5 pt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
-              <span className="text-[10px] uppercase font-black text-text-primary tracking-wide">
-                Missing Specs Checklist
+          <div className="mt-5 rounded-2xl border border-violet-500/12 bg-gradient-to-br from-violet-500/[0.03] to-transparent p-3.5">
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                <span className="text-[10px] uppercase font-bold text-text-primary tracking-wider">
+                  Missing specs
+                </span>
+                <span className="text-[9px] text-text-muted font-mono">
+                  ({intakeProfile.missingFields.length})
+                </span>
+              </div>
+              <span className="text-[9.5px] text-text-muted">
+                Tap to add
               </span>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {intakeProfile.missingFields.slice(0, 4).map((field) => (
+              {intakeProfile.missingFields.slice(0, 6).map((field) => (
                 <button
                   key={field}
                   onClick={() => onSpecClick?.(field)}
-                  className="inline-flex items-center gap-1 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:text-amber-600 rounded-full px-2.5 py-1 text-[11px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
+                  className="inline-flex items-center gap-1 bg-white hover:bg-violet-500/5 border border-violet-500/20 hover:border-violet-500/40 text-violet-600 rounded-full pl-1.5 pr-2.5 py-1 text-[11px] font-semibold cursor-pointer transition-all active:scale-95 shadow-sm"
                 >
-                  <span>+</span>
+                  <Plus className="w-3 h-3" />
                   <span className="capitalize">{field.replace(/Gb|Usd/i, '')}</span>
                 </button>
               ))}
@@ -241,55 +301,70 @@ export default function AgenticMessage({
           </div>
         )}
 
-        {/* Collapsible Command Execution Trace */}
+        {/* Execution trace — cleaner two-row layout when chips are present */}
         {traceLogs.length > 0 && (
-          <div className="mt-4 border-t border-black/5 dark:border-white/5 pt-3">
+          <div className="mt-4 border-t border-black/5 pt-3">
             <button
               onClick={() => setShowTrace(!showTrace)}
-              className="flex items-center justify-between w-full text-[10px] font-extrabold text-violet-400 hover:text-violet-500 cursor-pointer select-none transition-colors"
+              className="flex items-center justify-between w-full cursor-pointer select-none group/trace"
             >
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-violet-500 group-hover/trace:text-violet-600 tracking-wide transition-colors">
                 <Terminal className="w-3.5 h-3.5" />
                 <span>
-                  {showTrace ? 'Hide Agent Execution Trace' : `Show Agent Execution Trace (${activeAgentIds.length} active)`}
+                  {showTrace ? 'Hide execution trace' : 'Show execution trace'}
+                </span>
+                <span className="text-text-muted font-mono text-[10px] ml-1">
+                  · {activeAgentIds.length} active
                 </span>
               </div>
-              <div className="flex items-center gap-1">
-                {activeAgentIds.map(id => (
-                  <span
-                    key={id}
-                    className="px-1 py-0.2 rounded bg-violet-500/10 border border-violet-500/20 text-[7px] font-mono capitalize"
-                  >
-                    {id}
-                  </span>
-                ))}
-                {showTrace ? <ChevronUp className="w-3.5 h-3.5 ml-1" /> : <ChevronDown className="w-3.5 h-3.5 ml-1" />}
+              <div className="flex items-center gap-1.5">
+                <div className="hidden sm:flex items-center gap-1">
+                  {activeAgentIds.slice(0, 4).map((id) => (
+                    <span
+                      key={id}
+                      className="px-1.5 py-0.5 rounded-md bg-violet-500/8 border border-violet-500/15 text-[8.5px] font-mono font-semibold text-violet-500 capitalize tracking-wide"
+                    >
+                      {id}
+                    </span>
+                  ))}
+                </div>
+                {showTrace ? (
+                  <ChevronUp className="w-3.5 h-3.5 text-violet-500" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-violet-500" />
+                )}
               </div>
             </button>
 
-            {/* Terminal log logs container */}
             {showTrace && (
-              <div className="mt-2 bg-black/90 dark:bg-black/40 rounded-xl p-3 font-mono text-[9px] text-cyan-400/90 leading-normal border border-white/5 max-h-48 overflow-y-auto custom-scrollbar animate-slide-up shadow-inner relative">
-                {/* Blinking red check dot */}
-                <div className="absolute top-2 right-2 flex items-center gap-1 text-[8px] text-text-muted">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>trace_active</span>
+              <div className="mt-2.5 bg-slate-950 rounded-xl p-3 font-mono text-[10px] leading-relaxed border border-white/5 max-h-56 overflow-y-auto custom-scrollbar animate-slide-up shadow-inner relative">
+                <div className="absolute top-2 right-2 flex items-center gap-1 text-[8.5px] text-emerald-400/80 font-semibold tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>TRACE_ACTIVE</span>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 pr-24">
                   {traceLogs.map((log, idx) => (
                     <div key={idx} className="flex gap-2 items-start">
-                      <span className="text-text-muted select-none">$&gt;</span>
-                      <span className={log.includes('WARNING') ? 'text-rose-400 font-bold' : log.includes('Extracted') || log.includes('complete') || log.includes('clean') ? 'text-emerald-400' : 'text-cyan-300'}>
+                      <span className="text-slate-500 select-none">$&gt;</span>
+                      <span
+                        className={
+                          log.includes('WARNING')
+                            ? 'text-rose-400 font-semibold'
+                            : log.includes('complete') || log.includes('clean') || log.includes('100%')
+                              ? 'text-emerald-300'
+                              : 'text-cyan-300'
+                        }
+                      >
                         {log}
                       </span>
                     </div>
                   ))}
                   {message.streaming && (
-                    <div className="flex items-center gap-1 text-violet-400 font-bold animate-pulse">
+                    <div className="flex items-center gap-1 text-violet-400 font-semibold">
                       <span>$&gt;</span>
-                      <span>Orchestrating...</span>
-                      <span className="w-1 h-3.5 bg-violet-400 animate-pulse inline-block" />
+                      <span>Orchestrating</span>
+                      <span className="w-1.5 h-3 bg-violet-400 animate-pulse inline-block ml-0.5" />
                     </div>
                   )}
                 </div>
